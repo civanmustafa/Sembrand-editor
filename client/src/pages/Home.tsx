@@ -3,6 +3,7 @@ import ContentEditor from '@/components/ContentEditor';
 import KeywordInput from '@/components/KeywordInput';
 import KeywordAnalysis from '@/components/KeywordAnalysis';
 import RepeatedPhrases from '@/components/RepeatedPhrases';
+import StructureAnalysis from '@/components/StructureAnalysis';
 import ThemeToggle from '@/components/ThemeToggle';
 import { FileSearch } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -63,15 +64,22 @@ export default function Home() {
                 onCompanyNameChange={setCompanyName}
               />
               
-              <Tabs defaultValue="keywords" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
+              <Tabs defaultValue="structure" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="structure" data-testid="tab-structure">
+                    الهيكل والمحتوى
+                  </TabsTrigger>
                   <TabsTrigger value="keywords" data-testid="tab-keywords">
-                    تحليل الكلمات
+                    الكلمات المفتاحية
                   </TabsTrigger>
                   <TabsTrigger value="phrases" data-testid="tab-phrases">
                     الجمل المكررة
                   </TabsTrigger>
                 </TabsList>
+                
+                <TabsContent value="structure" className="mt-4">
+                  <StructureAnalysis content={content} />
+                </TabsContent>
                 
                 <TabsContent value="keywords" className="mt-4">
                   <KeywordAnalysis

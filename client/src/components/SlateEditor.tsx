@@ -111,7 +111,7 @@ const toggleBlock = (editor: any, format: string) => {
 
   editor.unwrapNodes({
     match: (n: any) =>
-      !editor.isEditor(n) &&
+      !Editor.isEditor(n) &&
       SlateElement.isElement(n) &&
       LIST_TYPES.includes((n as any).type),
     split: true,
@@ -146,7 +146,7 @@ const isBlockActive = (editor: any, format: string) => {
     editor.nodes({
       at: editor.unhangRange(selection),
       match: (n: any) => {
-        if (!editor.isEditor(n) && SlateElement.isElement(n)) {
+        if (!Editor.isEditor(n) && SlateElement.isElement(n)) {
           return (n as any).type === format;
         }
         return false;
