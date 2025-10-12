@@ -158,7 +158,7 @@ const isBlockActive = (editor: any, format: string) => {
 };
 
 const isMarkActive = (editor: any, format: string) => {
-  const marks = Editor.marks(editor);
+  const marks = Editor.marks(editor) as any;
   return marks ? marks[format] === true : false;
 };
 

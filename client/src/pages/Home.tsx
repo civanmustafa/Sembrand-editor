@@ -2,8 +2,10 @@ import { useState } from 'react';
 import ContentEditor from '@/components/ContentEditor';
 import KeywordInput from '@/components/KeywordInput';
 import KeywordAnalysis from '@/components/KeywordAnalysis';
+import RepeatedPhrases from '@/components/RepeatedPhrases';
 import ThemeToggle from '@/components/ThemeToggle';
 import { FileSearch } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function Home() {
   const [content, setContent] = useState('');
@@ -61,17 +63,38 @@ export default function Home() {
                 onCompanyNameChange={setCompanyName}
               />
               
-              <KeywordAnalysis
-                content={content}
-                primaryKeyword={primaryKeyword}
-                subKeyword1={subKeyword1}
-                subKeyword2={subKeyword2}
-                subKeyword3={subKeyword3}
-                subKeyword4={subKeyword4}
-                companyName={companyName}
-                onKeywordClick={handleKeywordClick}
-                highlightedKeyword={highlightedKeyword}
-              />
+              <Tabs defaultValue="keywords" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="keywords" data-testid="tab-keywords">
+                    تحليل الكلمات
+                  </TabsTrigger>
+                  <TabsTrigger value="phrases" data-testid="tab-phrases">
+                    الجمل المكررة
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="keywords" className="mt-4">
+                  <KeywordAnalysis
+                    content={content}
+                    primaryKeyword={primaryKeyword}
+                    subKeyword1={subKeyword1}
+                    subKeyword2={subKeyword2}
+                    subKeyword3={subKeyword3}
+                    subKeyword4={subKeyword4}
+                    companyName={companyName}
+                    onKeywordClick={handleKeywordClick}
+                    highlightedKeyword={highlightedKeyword}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="phrases" className="mt-4">
+                  <RepeatedPhrases
+                    content={content}
+                    onPhraseClick={setHighlightedKeyword}
+                    highlightedPhrase={highlightedKeyword}
+                  />
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
 

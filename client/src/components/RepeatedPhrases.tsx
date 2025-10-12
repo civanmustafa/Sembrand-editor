@@ -1,181 +1,326 @@
-import { useState, useMemo } from 'react';
-import { CheckSquare, Square, Check } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+import { CheckSquare, Square } from 'lucide-react';
 
 interface RepeatedPhrasesProps {
   content: string;
+  onPhraseClick: (phrase: string | null) => void;
+  highlightedPhrase: string | null;
 }
 
-interface PhraseCount {
+interface PhraseData {
   phrase: string;
   count: number;
+  selected: boolean;
 }
 
-export default function RepeatedPhrases({ content }: RepeatedPhrasesProps) {
+interface PhrasesAnalysis {
+  twoWord: PhraseData[];
+  threeWord: PhraseData[];
+  fourWord: PhraseData[];
+  fiveWord: PhraseData[];
+  sixWord: PhraseData[];
+  sevenWord: PhraseData[];
+  eightWord: PhraseData[];
+  stats: {
+    totalWords: number;
+    uniqueWords: number;
+    repeatedPhrasesCount: number;
+    totalRepetitions: number;
+  };
+}
+
+export default function RepeatedPhrases({
+  content,
+  onPhraseClick,
+  highlightedPhrase,
+}: RepeatedPhrasesProps) {
   const [selectedPhrases, setSelectedPhrases] = useState<Set<string>>(new Set());
 
-  // Extract n-grams (2 to 8 words)
-  const phraseGroups = useMemo(() => {
-    const text = content.toLowerCase().trim();
-    if (!text) return {};
+  const analysis: PhrasesAnalysis = useMemo(() => {
+    if (!content.trim()) {
+      return {
+        twoWord: [],
+        threeWord: [],
+        fourWord: [],
+        fiveWord: [],
+        sixWord: [],
+        sevenWord: [],
+        eightWord: [],
+        stats: {
+          totalWords: 0,
+          uniqueWords: 0,
+          repeatedPhrasesCount: 0,
+          totalRepetitions: 0,
+        },
+      };
+    }
 
-    const words = text.split(/\s+/).filter(w => w.length > 0);
-    const groups: Record<number, PhraseCount[]> = {};
+    const words = content
+      .toLowerCase()
+      .replace(/[^\u0600-\u06FF\s]/g, ' ')
+      .split(/\s+/)
+      .filter(w => w.length > 0);
 
-    for (let n = 2; n <= 8; n++) {
-      const phraseCounts = new Map<string, number>();
+    const uniqueWordsSet = new Set(words);
+    
+    const extractPhrases = (n: number): PhraseData[] => {
+      const phrasesMap = new Map<string, number>();
       
       for (let i = 0; i <= words.length - n; i++) {
         const phrase = words.slice(i, i + n).join(' ');
-        phraseCounts.set(phrase, (phraseCounts.get(phrase) || 0) + 1);
+        phrasesMap.set(phrase, (phrasesMap.get(phrase) || 0) + 1);
       }
 
-      // Filter only repeated phrases
-      const repeated = Array.from(phraseCounts.entries())
+      return Array.from(phrasesMap.entries())
         .filter(([_, count]) => count > 1)
-        .map(([phrase, count]) => ({ phrase, count }))
+        .map(([phrase, count]) => ({
+          phrase,
+          count,
+          selected: selectedPhrases.has(phrase),
+        }))
         .sort((a, b) => b.count - a.count);
+    };
 
-      if (repeated.length > 0) {
-        groups[n] = repeated;
-      }
-    }
+    const twoWord = extractPhrases(2);
+    const threeWord = extractPhrases(3);
+    const fourWord = extractPhrases(4);
+    const fiveWord = extractPhrases(5);
+    const sixWord = extractPhrases(6);
+    const sevenWord = extractPhrases(7);
+    const eightWord = extractPhrases(8);
 
-    return groups;
-  }, [content]);
+    const allPhrases = [
+      ...twoWord,
+      ...threeWord,
+      ...fourWord,
+      ...fiveWord,
+      ...sixWord,
+      ...sevenWord,
+      ...eightWord,
+    ];
 
-  const handleSelectAll = (groupSize: number) => {
-    const newSelected = new Set(selectedPhrases);
-    phraseGroups[groupSize]?.forEach(({ phrase }) => newSelected.add(phrase));
-    setSelectedPhrases(newSelected);
-  };
+    const totalRepetitions = allPhrases.reduce(
+      (sum, p) => sum + (p.count - 1),
+      0
+    );
 
-  const handleDeselectAll = (groupSize: number) => {
-    const newSelected = new Set(selectedPhrases);
-    phraseGroups[groupSize]?.forEach(({ phrase }) => newSelected.delete(phrase));
-    setSelectedPhrases(newSelected);
-  };
+    return {
+      twoWord,
+      threeWord,
+      fourWord,
+      fiveWord,
+      sixWord,
+      sevenWord,
+      eightWord,
+      stats: {
+        totalWords: words.length,
+        uniqueWords: uniqueWordsSet.size,
+        repeatedPhrasesCount: allPhrases.length,
+        totalRepetitions,
+      },
+    };
+  }, [content, selectedPhrases]);
 
   const togglePhrase = (phrase: string) => {
     const newSelected = new Set(selectedPhrases);
     if (newSelected.has(phrase)) {
       newSelected.delete(phrase);
+      if (highlightedPhrase === phrase) {
+        onPhraseClick(null);
+      }
     } else {
       newSelected.add(phrase);
     }
     setSelectedPhrases(newSelected);
   };
 
-  const groupLabels: Record<number, string> = {
-    2: 'الجمل الثنائية',
-    3: 'الجمل الثلاثية',
-    4: 'الجمل الرباعية',
-    5: 'الجمل الخماسية',
-    6: 'الجمل السداسية',
-    7: 'الجمل السباعية',
-    8: 'الجمل الثمانية'
+  const selectAllInGroup = (phrases: PhraseData[]) => {
+    const newSelected = new Set(selectedPhrases);
+    phrases.forEach(p => newSelected.add(p.phrase));
+    setSelectedPhrases(newSelected);
   };
 
-  if (Object.keys(phraseGroups).length === 0) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        لا توجد جمل مكررة في المحتوى
-      </div>
-    );
-  }
+  const clearSelectionInGroup = (phrases: PhraseData[]) => {
+    const newSelected = new Set(selectedPhrases);
+    phrases.forEach(p => {
+      newSelected.delete(p.phrase);
+      if (highlightedPhrase === p.phrase) {
+        onPhraseClick(null);
+      }
+    });
+    setSelectedPhrases(newSelected);
+  };
 
-  return (
-    <Accordion type="multiple" className="w-full space-y-2">
-      {Object.entries(phraseGroups).map(([size, phrases]) => {
-        const groupSize = parseInt(size);
-        const allSelected = phrases.every(({ phrase }) => selectedPhrases.has(phrase));
-        
-        return (
-          <AccordionItem
-            key={size}
-            value={size}
-            className="border border-border rounded-lg bg-card"
-            data-testid={`accordion-phrases-${size}`}
-          >
-            <AccordionTrigger className="px-4 hover:no-underline hover-elevate">
-              <div className="flex items-center justify-between w-full gap-4">
-                <div className="flex items-center gap-3">
-                  <Badge variant="outline" className="font-mono">
-                    {phrases.length}
+  const PhraseGroup = ({
+    title,
+    phrases,
+    testId,
+  }: {
+    title: string;
+    phrases: PhraseData[];
+    testId: string;
+  }) => {
+    if (phrases.length === 0) return null;
+
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-sm font-medium">{title}</CardTitle>
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs"
+                onClick={() => selectAllInGroup(phrases)}
+                data-testid={`button-select-all-${testId}`}
+              >
+                تحديد الكل
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs"
+                onClick={() => clearSelectionInGroup(phrases)}
+                data-testid={`button-clear-${testId}`}
+              >
+                مسح التحديد
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {phrases.map((phraseData, idx) => {
+            const isSelected = selectedPhrases.has(phraseData.phrase);
+            const isHighlighted = highlightedPhrase === phraseData.phrase;
+
+            return (
+              <div
+                key={idx}
+                className={`flex items-center justify-between gap-2 p-2 rounded-md border ${
+                  isHighlighted ? 'border-primary bg-primary/10' : 'border-border'
+                }`}
+                data-testid={`phrase-${testId}-${idx}`}
+              >
+                <button
+                  onClick={() => togglePhrase(phraseData.phrase)}
+                  className="flex items-center gap-2 flex-1 text-right"
+                >
+                  {isSelected ? (
+                    <CheckSquare className="w-4 h-4 text-primary shrink-0" />
+                  ) : (
+                    <Square className="w-4 h-4 text-muted-foreground shrink-0" />
+                  )}
+                  <span className="text-sm truncate">{phraseData.phrase}</span>
+                </button>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="shrink-0">
+                    {phraseData.count}×
                   </Badge>
-                  <span className="font-medium">{groupLabels[groupSize]}</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 text-xs shrink-0"
+                    onClick={() =>
+                      onPhraseClick(
+                        highlightedPhrase === phraseData.phrase
+                          ? null
+                          : phraseData.phrase
+                      )
+                    }
+                    data-testid={`button-highlight-phrase-${testId}-${idx}`}
+                  >
+                    تمييز
+                  </Button>
                 </div>
               </div>
-            </AccordionTrigger>
-            
-            <AccordionContent className="px-4 pb-4">
-              <div className="flex gap-2 mb-3 pt-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSelectAll(groupSize);
-                  }}
-                  disabled={allSelected}
-                  data-testid={`button-select-all-${size}`}
-                >
-                  <CheckSquare className="w-4 h-4 ml-2" />
-                  تحديد الكل
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeselectAll(groupSize);
-                  }}
-                  disabled={!phrases.some(({ phrase }) => selectedPhrases.has(phrase))}
-                  data-testid={`button-deselect-all-${size}`}
-                >
-                  <Square className="w-4 h-4 ml-2" />
-                  مسح التحديد
-                </Button>
-              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+    );
+  };
 
-              <div className="space-y-2">
-                {phrases.map(({ phrase, count }, index) => {
-                  const isSelected = selectedPhrases.has(phrase);
-                  
-                  return (
-                    <div
-                      key={index}
-                      onClick={() => togglePhrase(phrase)}
-                      className={`flex items-center justify-between p-3 rounded-md border cursor-pointer transition-colors hover-elevate
-                        ${isSelected ? 'border-primary bg-primary/5' : 'border-border'}`}
-                      data-testid={`phrase-item-${size}-${index}`}
-                    >
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0
-                          ${isSelected ? 'border-primary bg-primary' : 'border-muted-foreground'}`}
-                        >
-                          {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
-                        </div>
-                        <span className="font-mono text-sm text-right flex-1">{phrase}</span>
-                      </div>
-                      <Badge variant="secondary" className="font-mono shrink-0">
-                        {count}×
-                      </Badge>
-                    </div>
-                  );
-                })}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        );
-      })}
-    </Accordion>
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">لوحة المعلومات</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">عدد الكلمات</p>
+            <p className="text-2xl font-bold" data-testid="stat-total-words">
+              {analysis.stats.totalWords}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">الكلمات الفريدة</p>
+            <p className="text-2xl font-bold" data-testid="stat-unique-words">
+              {analysis.stats.uniqueWords}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">الجمل المكررة</p>
+            <p className="text-2xl font-bold" data-testid="stat-repeated-phrases">
+              {analysis.stats.repeatedPhrasesCount}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">إجمالي التكرار</p>
+            <p className="text-2xl font-bold" data-testid="stat-total-repetitions">
+              {analysis.stats.totalRepetitions}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <PhraseGroup
+        title="الجمل الثنائية"
+        phrases={analysis.twoWord}
+        testId="two-word"
+      />
+      <PhraseGroup
+        title="الجمل الثلاثية"
+        phrases={analysis.threeWord}
+        testId="three-word"
+      />
+      <PhraseGroup
+        title="الجمل الرباعية"
+        phrases={analysis.fourWord}
+        testId="four-word"
+      />
+      <PhraseGroup
+        title="الجمل الخماسية"
+        phrases={analysis.fiveWord}
+        testId="five-word"
+      />
+      <PhraseGroup
+        title="الجمل السداسية"
+        phrases={analysis.sixWord}
+        testId="six-word"
+      />
+      <PhraseGroup
+        title="الجمل السباعية"
+        phrases={analysis.sevenWord}
+        testId="seven-word"
+      />
+      <PhraseGroup
+        title="الجمل الثمانية"
+        phrases={analysis.eightWord}
+        testId="eight-word"
+      />
+
+      {analysis.stats.repeatedPhrasesCount === 0 && content.trim() && (
+        <Card>
+          <CardContent className="py-8 text-center text-muted-foreground">
+            لا توجد جمل مكررة في النص
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
