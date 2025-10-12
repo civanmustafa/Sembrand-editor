@@ -5,6 +5,7 @@ import KeywordAnalysis from '@/components/KeywordAnalysis';
 import RepeatedPhrases from '@/components/RepeatedPhrases';
 import StructureAnalysis from '@/components/StructureAnalysis';
 import ThemeToggle from '@/components/ThemeToggle';
+import SearchReplace from '@/components/SearchReplace';
 import { FileSearch } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HighlightConfig } from '@/components/SlateEditor';
@@ -20,6 +21,7 @@ export default function Home() {
   const [highlightedKeyword, setHighlightedKeyword] = useState<string | null>(null);
   const [highlights, setHighlights] = useState<HighlightConfig[]>([]);
   const [editor, setEditor] = useState<any>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const handleKeywordClick = (keyword: string) => {
     if (highlightedKeyword === keyword) {
@@ -65,9 +67,28 @@ export default function Home() {
     setHighlights([]);
   }, []);
 
+  const handleReplace = useCallback((searchText: string, replaceText: string, replaceAll: boolean) => {
+    if (replaceAll) {
+      const regex = new RegExp(searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      setContent(content.replace(regex, replaceText));
+    } else {
+      const index = content.toLowerCase().indexOf(searchText.toLowerCase());
+      if (index !== -1) {
+        setContent(
+          content.substring(0, index) +
+          replaceText +
+          content.substring(index + searchText.length)
+        );
+      }
+    }
+  }, [content]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey && e.key === 'j') {
+      if (e.ctrlKey && e.key === 'f') {
+        e.preventDefault();
+        setSearchOpen(true);
+      } else if (e.altKey && e.key === 'j') {
         e.preventDefault();
         handleHighlightAllKeywords();
       } else if (e.altKey && e.key === 'l') {
@@ -81,8 +102,16 @@ export default function Home() {
   }, [handleHighlightAllKeywords, handleClearAllHighlights]);
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
-      <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
+    <>
+      <SearchReplace
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        content={content}
+        onReplace={handleReplace}
+      />
+      
+      <div className="min-h-screen bg-background" dir="rtl">
+        <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -174,5 +203,6 @@ export default function Home() {
         </div>
       </main>
     </div>
+    </>
   );
 }
