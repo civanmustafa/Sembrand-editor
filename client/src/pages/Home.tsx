@@ -9,6 +9,7 @@ import SearchReplace from '@/components/SearchReplace';
 import { FileSearch } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HighlightConfig } from '@/components/SlateEditor';
+import { normalizeArabicText } from '@/lib/arabicUtils';
 
 export default function Home() {
   const [content, setContent] = useState('');
@@ -68,11 +69,25 @@ export default function Home() {
   }, []);
 
   const handleReplace = useCallback((searchText: string, replaceText: string, replaceAll: boolean) => {
+    const normalizedSearch = normalizeArabicText(searchText);
+    const normalizedContent = normalizeArabicText(content);
+    
     if (replaceAll) {
-      const regex = new RegExp(searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-      setContent(content.replace(regex, replaceText));
+      let newContent = content;
+      let searchIndex = 0;
+      let offset = 0;
+      
+      while ((searchIndex = normalizedContent.indexOf(normalizedSearch, searchIndex)) !== -1) {
+        const actualIndex = searchIndex + offset;
+        newContent = newContent.substring(0, actualIndex) +
+                     replaceText +
+                     newContent.substring(actualIndex + searchText.length);
+        offset += replaceText.length - searchText.length;
+        searchIndex += normalizedSearch.length;
+      }
+      setContent(newContent);
     } else {
-      const index = content.toLowerCase().indexOf(searchText.toLowerCase());
+      const index = normalizedContent.indexOf(normalizedSearch);
       if (index !== -1) {
         setContent(
           content.substring(0, index) +

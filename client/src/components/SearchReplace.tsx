@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { X, Search, Replace, ChevronDown, ChevronUp } from 'lucide-react';
+import { normalizeArabicText } from '@/lib/arabicUtils';
 
 interface SearchReplaceProps {
   isOpen: boolean;
@@ -31,14 +32,14 @@ export default function SearchReplace({
       return;
     }
 
-    const lowerContent = content.toLowerCase();
-    const lowerSearch = searchText.toLowerCase();
+    const normalizedContent = normalizeArabicText(content);
+    const normalizedSearch = normalizeArabicText(searchText);
     let count = 0;
     let index = 0;
 
-    while ((index = lowerContent.indexOf(lowerSearch, index)) !== -1) {
+    while ((index = normalizedContent.indexOf(normalizedSearch, index)) !== -1) {
       count++;
-      index += lowerSearch.length;
+      index += normalizedSearch.length;
     }
 
     setTotalMatches(count);
