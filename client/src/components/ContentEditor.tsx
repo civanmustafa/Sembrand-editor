@@ -1,16 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Descendant } from 'slate';
 import SlateEditor from './SlateEditor';
-import { Highlighter } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 interface ContentEditorProps {
   content: string;
   onChange: (content: string) => void;
-  primaryKeyword?: string;
-  secondaryKeywords?: string[];
+  highlightedKeyword?: string | null;
 }
 
-// Convert plain text to Slate value
 const textToSlateValue = (text: string): Descendant[] => {
   if (!text.trim()) {
     return [
@@ -24,7 +22,6 @@ const textToSlateValue = (text: string): Descendant[] => {
   const paragraphs = text.split('\n\n').filter(p => p.trim());
   
   return paragraphs.map(para => {
-    // Check if it starts with heading markers
     if (para.startsWith('#### ')) {
       return {
         type: 'heading-four',
@@ -54,27 +51,35 @@ const textToSlateValue = (text: string): Descendant[] => {
   });
 };
 
-// Convert Slate value to plain text
 const slateValueToText = (value: Descendant[]): string => {
   return value
     .map((node: any) => {
-      if (node.children) {
-        return node.children.map((child: any) => child.text || '').join('');
-      }
-      return '';
+      const text = node.children?.map((child: any) => child.text || '').join('') || '';
+      
+      if (node.type === 'heading-one') return `# ${text}`;
+      if (node.type === 'heading-two') return `## ${text}`;
+      if (node.type === 'heading-three') return `### ${text}`;
+      if (node.type === 'heading-four') return `#### ${text}`;
+      
+      return text;
     })
     .join('\n\n');
 };
 
 export default function ContentEditor({ 
   content, 
-  onChange, 
-  primaryKeyword = '', 
-  secondaryKeywords = [] 
+  onChange,
+  highlightedKeyword
 }: ContentEditorProps) {
   const [slateValue, setSlateValue] = useState<Descendant[]>(() => 
     textToSlateValue(content)
   );
+
+  useEffect(() => {
+    if (!content) {
+      setSlateValue(textToSlateValue(''));
+    }
+  }, [content]);
 
   const handleChange = (newValue: Descendant[]) => {
     setSlateValue(newValue);
@@ -83,20 +88,14 @@ export default function ContentEditor({
   };
 
   return (
-    <div className="relative h-full">
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-2 text-sm text-muted-foreground">
-        <Highlighter className="w-4 h-4" />
-        <span>المحرر</span>
-      </div>
-      
-      <div className="pt-12 h-full overflow-y-auto">
+    <Card className="h-full flex flex-col">
+      <div className="flex-1 overflow-hidden p-4">
         <SlateEditor
           value={slateValue}
           onChange={handleChange}
-          primaryKeyword={primaryKeyword}
-          secondaryKeywords={secondaryKeywords}
+          highlightedKeyword={highlightedKeyword}
         />
       </div>
-    </div>
+    </Card>
   );
 }

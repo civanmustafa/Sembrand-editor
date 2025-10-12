@@ -1,7 +1,7 @@
-import { useCallback, useMemo, useEffect } from 'react';
-import { createEditor, Descendant, Element as SlateElement, Text, BaseEditor } from 'slate';
-import { Slate, Editable, withReact, ReactEditor, useSlateStatic } from 'slate-react';
-import { withHistory, HistoryEditor } from 'slate-history';
+import { useCallback, useMemo } from 'react';
+import { createEditor, Descendant, Element as SlateElement, Editor } from 'slate';
+import { Slate, Editable, withReact, useSlateStatic } from 'slate-react';
+import { withHistory } from 'slate-history';
 // @ts-ignore - no types available
 import isHotkey from 'is-hotkey';
 import {
@@ -14,11 +14,9 @@ import {
   Heading4,
   List,
   ListOrdered,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  AlignJustify,
-  Quote
+  Quote,
+  Strikethrough,
+  Code
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -32,15 +30,13 @@ const HOTKEYS = {
 interface SlateEditorProps {
   value: Descendant[];
   onChange: (value: Descendant[]) => void;
-  primaryKeyword?: string;
-  secondaryKeywords?: string[];
+  highlightedKeyword?: string | null;
 }
 
 export default function SlateEditor({
   value,
   onChange,
-  primaryKeyword = '',
-  secondaryKeywords = []
+  highlightedKeyword
 }: SlateEditorProps) {
   const editor = useMemo(() => withHistory(withReact(createEditor())), []);
   
@@ -49,11 +45,10 @@ export default function SlateEditor({
     (props: any) => (
       <Leaf
         {...props}
-        primaryKeyword={primaryKeyword}
-        secondaryKeywords={secondaryKeywords}
+        highlightedKeyword={highlightedKeyword}
       />
     ),
-    [primaryKeyword, secondaryKeywords]
+    [highlightedKeyword]
   );
 
   const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
@@ -68,12 +63,13 @@ export default function SlateEditor({
 
   return (
     <Slate editor={editor} initialValue={value} onValueChange={onChange}>
-      <div className="space-y-2">
-        {/* Toolbar */}
-        <div className="flex items-center gap-1 p-2 bg-muted/30 rounded-lg border border-border flex-wrap">
+      <div className="space-y-2 h-full flex flex-col">
+        <div className="flex items-center gap-1 p-2 bg-muted/30 rounded-md border flex-wrap">
           <MarkButton format="bold" icon={<Bold className="w-4 h-4" />} />
           <MarkButton format="italic" icon={<Italic className="w-4 h-4" />} />
           <MarkButton format="underline" icon={<Underline className="w-4 h-4" />} />
+          <MarkButton format="strikethrough" icon={<Strikethrough className="w-4 h-4" />} />
+          <MarkButton format="code" icon={<Code className="w-4 h-4" />} />
           
           <Separator orientation="vertical" className="h-6 mx-1" />
           
@@ -87,57 +83,43 @@ export default function SlateEditor({
           
           <BlockButton format="numbered-list" icon={<ListOrdered className="w-4 h-4" />} />
           <BlockButton format="bulleted-list" icon={<List className="w-4 h-4" />} />
-          
-          <Separator orientation="vertical" className="h-6 mx-1" />
-          
-          <BlockButton format="left" icon={<AlignLeft className="w-4 h-4" />} />
-          <BlockButton format="center" icon={<AlignCenter className="w-4 h-4" />} />
-          <BlockButton format="right" icon={<AlignRight className="w-4 h-4" />} />
-          <BlockButton format="justify" icon={<AlignJustify className="w-4 h-4" />} />
         </div>
 
-        {/* Editor */}
-        <Editable
-          renderElement={renderElement}
-          renderLeaf={renderLeaf}
-          placeholder="ابدأ الكتابة أو الصق المحتوى هنا..."
-          spellCheck
-          onKeyDown={handleKeyDown}
-          className="min-h-[500px] p-6 bg-muted/30 rounded-lg border border-border
-                     focus:outline-none focus:ring-2 focus:ring-primary/50
-                     text-foreground leading-relaxed"
-          dir="rtl"
-          style={{ textAlign: 'right' }}
-          data-testid="slate-editor"
-        />
+        <div className="flex-1 overflow-auto">
+          <Editable
+            renderElement={renderElement}
+            renderLeaf={renderLeaf}
+            placeholder="ابدأ الكتابة أو الصق المحتوى هنا..."
+            spellCheck
+            onKeyDown={handleKeyDown}
+            className="min-h-[400px] p-6 bg-muted/30 rounded-md border
+                       focus:outline-none focus:ring-2 focus:ring-primary/50
+                       text-foreground leading-relaxed"
+            dir="rtl"
+            style={{ textAlign: 'right' }}
+            data-testid="slate-editor"
+          />
+        </div>
       </div>
     </Slate>
   );
 }
 
 const toggleBlock = (editor: any, format: string) => {
-  const isActive = isBlockActive(editor, format, TEXT_ALIGN_TYPES.includes(format) ? 'align' : 'type');
+  const isActive = isBlockActive(editor, format);
   const isList = LIST_TYPES.includes(format);
 
   editor.unwrapNodes({
     match: (n: any) =>
       !editor.isEditor(n) &&
       SlateElement.isElement(n) &&
-      LIST_TYPES.includes((n as any).type) &&
-      !TEXT_ALIGN_TYPES.includes(format),
+      LIST_TYPES.includes((n as any).type),
     split: true,
   });
 
-  let newProperties: any;
-  if (TEXT_ALIGN_TYPES.includes(format)) {
-    newProperties = {
-      align: isActive ? undefined : format,
-    };
-  } else {
-    newProperties = {
-      type: isActive ? 'paragraph' : isList ? 'list-item' : format,
-    };
-  }
+  const newProperties: any = {
+    type: isActive ? 'paragraph' : isList ? 'list-item' : format,
+  };
 
   editor.setNodes(newProperties);
 
@@ -156,7 +138,7 @@ const toggleMark = (editor: any, format: string) => {
   }
 };
 
-const isBlockActive = (editor: any, format: string, blockType = 'type') => {
+const isBlockActive = (editor: any, format: string) => {
   const { selection } = editor;
   if (!selection) return false;
 
@@ -165,9 +147,6 @@ const isBlockActive = (editor: any, format: string, blockType = 'type') => {
       at: editor.unhangRange(selection),
       match: (n: any) => {
         if (!editor.isEditor(n) && SlateElement.isElement(n)) {
-          if (blockType === 'align' && 'align' in n) {
-            return (n as any).align === format;
-          }
           return (n as any).type === format;
         }
         return false;
@@ -179,78 +158,72 @@ const isBlockActive = (editor: any, format: string, blockType = 'type') => {
 };
 
 const isMarkActive = (editor: any, format: string) => {
-  const marks = editor.marks();
+  const marks = Editor.marks(editor);
   return marks ? marks[format] === true : false;
 };
 
 const LIST_TYPES = ['numbered-list', 'bulleted-list'];
-const TEXT_ALIGN_TYPES = ['left', 'center', 'right', 'justify'];
 
 const Element = ({ attributes, children, element }: any) => {
-  const style: any = {};
-  if ('align' in element) {
-    style.textAlign = element.align;
-  }
-
   switch (element.type) {
     case 'block-quote':
       return (
-        <blockquote style={style} {...attributes} className="border-r-4 border-primary pr-4 my-4 text-muted-foreground">
+        <blockquote {...attributes} className="border-r-4 border-primary pr-4 my-4 text-muted-foreground">
           {children}
         </blockquote>
       );
     case 'bulleted-list':
       return (
-        <ul style={style} {...attributes} className="list-disc list-inside my-2">
+        <ul {...attributes} className="list-disc list-inside my-2">
           {children}
         </ul>
       );
     case 'heading-one':
       return (
-        <h1 style={style} {...attributes} className="text-3xl font-bold my-4">
+        <h1 {...attributes} className="text-3xl font-bold my-4">
           {children}
         </h1>
       );
     case 'heading-two':
       return (
-        <h2 style={style} {...attributes} className="text-2xl font-semibold my-3">
+        <h2 {...attributes} className="text-2xl font-semibold my-3">
           {children}
         </h2>
       );
     case 'heading-three':
       return (
-        <h3 style={style} {...attributes} className="text-xl font-semibold my-2">
+        <h3 {...attributes} className="text-xl font-semibold my-2">
           {children}
         </h3>
       );
     case 'heading-four':
       return (
-        <h4 style={style} {...attributes} className="text-lg font-medium my-2">
+        <h4 {...attributes} className="text-lg font-medium my-2">
           {children}
         </h4>
       );
     case 'list-item':
       return (
-        <li style={style} {...attributes}>
+        <li {...attributes}>
           {children}
         </li>
       );
     case 'numbered-list':
       return (
-        <ol style={style} {...attributes} className="list-decimal list-inside my-2">
+        <ol {...attributes} className="list-decimal list-inside my-2">
           {children}
         </ol>
       );
     default:
       return (
-        <p style={style} {...attributes} className="my-2">
+        <p {...attributes} className="my-2">
           {children}
         </p>
       );
   }
 };
 
-const Leaf = ({ attributes, children, leaf, primaryKeyword, secondaryKeywords }: any) => {
+const Leaf = ({ attributes, children, leaf, highlightedKeyword }: any) => {
   let content = children;
 
   if (leaf.bold) {
@@ -262,29 +235,26 @@ const Leaf = ({ attributes, children, leaf, primaryKeyword, secondaryKeywords }:
   if (leaf.underline) {
     content = <u>{content}</u>;
   }
+  if (leaf.strikethrough) {
+    content = <s>{content}</s>;
+  }
+  if (leaf.code) {
+    content = <code className="bg-muted px-1 py-0.5 rounded text-sm">{content}</code>;
+  }
 
-  // Highlight keywords
   const text = leaf.text || '';
   const lowerText = text.toLowerCase();
   
   let highlighted = false;
-  let highlightClass = '';
-
-  if (primaryKeyword && lowerText.includes(primaryKeyword.toLowerCase())) {
+  if (highlightedKeyword && lowerText.includes(highlightedKeyword.toLowerCase())) {
     highlighted = true;
-    highlightClass = 'bg-success/20 text-success-foreground';
-  } else if (secondaryKeywords) {
-    for (const keyword of secondaryKeywords) {
-      if (keyword && lowerText.includes(keyword.toLowerCase())) {
-        highlighted = true;
-        highlightClass = 'bg-warning/25 text-warning-foreground';
-        break;
-      }
-    }
   }
 
   return (
-    <span {...attributes} className={highlighted ? highlightClass : ''}>
+    <span 
+      {...attributes} 
+      className={highlighted ? 'bg-primary/30 text-primary-foreground rounded px-0.5' : ''}
+    >
       {content}
     </span>
   );
@@ -292,10 +262,11 @@ const Leaf = ({ attributes, children, leaf, primaryKeyword, secondaryKeywords }:
 
 const BlockButton = ({ format, icon }: { format: string; icon: React.ReactNode }) => {
   const editor = useSlateStatic();
+  const isActive = isBlockActive(editor, format);
   
   return (
     <Button
-      variant="ghost"
+      variant={isActive ? 'default' : 'ghost'}
       size="sm"
       className="h-8 w-8 p-0"
       onMouseDown={(event) => {
@@ -311,10 +282,11 @@ const BlockButton = ({ format, icon }: { format: string; icon: React.ReactNode }
 
 const MarkButton = ({ format, icon }: { format: string; icon: React.ReactNode }) => {
   const editor = useSlateStatic();
+  const isActive = isMarkActive(editor, format);
   
   return (
     <Button
-      variant="ghost"
+      variant={isActive ? 'default' : 'ghost'}
       size="sm"
       className="h-8 w-8 p-0"
       onMouseDown={(event) => {
