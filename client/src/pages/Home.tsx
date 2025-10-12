@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import ContentEditor from '@/components/ContentEditor';
 import KeywordInput from '@/components/KeywordInput';
 import KeywordAnalysis from '@/components/KeywordAnalysis';
@@ -7,6 +7,7 @@ import StructureAnalysis from '@/components/StructureAnalysis';
 import ThemeToggle from '@/components/ThemeToggle';
 import { FileSearch } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { HighlightConfig } from '@/components/SlateEditor';
 
 export default function Home() {
   const [content, setContent] = useState('');
@@ -17,6 +18,8 @@ export default function Home() {
   const [subKeyword4, setSubKeyword4] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [highlightedKeyword, setHighlightedKeyword] = useState<string | null>(null);
+  const [highlights, setHighlights] = useState<HighlightConfig[]>([]);
+  const [editor, setEditor] = useState<any>(null);
 
   const handleKeywordClick = (keyword: string) => {
     if (highlightedKeyword === keyword) {
@@ -25,6 +28,57 @@ export default function Home() {
       setHighlightedKeyword(keyword);
     }
   };
+
+  const handleHighlightAllKeywords = useCallback(() => {
+    const newHighlights: HighlightConfig[] = [];
+    
+    if (primaryKeyword) {
+      newHighlights.push({
+        text: primaryKeyword,
+        color: 'green',
+        type: 'primary'
+      });
+    }
+    
+    [subKeyword1, subKeyword2, subKeyword3, subKeyword4].forEach(keyword => {
+      if (keyword) {
+        newHighlights.push({
+          text: keyword,
+          color: 'orange',
+          type: 'secondary'
+        });
+      }
+    });
+    
+    if (companyName) {
+      newHighlights.push({
+        text: companyName,
+        color: 'red',
+        type: 'company'
+      });
+    }
+    
+    setHighlights(newHighlights);
+  }, [primaryKeyword, subKeyword1, subKeyword2, subKeyword3, subKeyword4, companyName]);
+
+  const handleClearAllHighlights = useCallback(() => {
+    setHighlights([]);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === 'j') {
+        e.preventDefault();
+        handleHighlightAllKeywords();
+      } else if (e.altKey && e.key === 'l') {
+        e.preventDefault();
+        handleClearAllHighlights();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleHighlightAllKeywords, handleClearAllHighlights]);
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
@@ -92,6 +146,8 @@ export default function Home() {
                     companyName={companyName}
                     onKeywordClick={handleKeywordClick}
                     highlightedKeyword={highlightedKeyword}
+                    onHighlightAllKeywords={handleHighlightAllKeywords}
+                    onClearAllHighlights={handleClearAllHighlights}
                   />
                 </TabsContent>
                 
@@ -111,6 +167,8 @@ export default function Home() {
               content={content}
               onChange={setContent}
               highlightedKeyword={highlightedKeyword}
+              highlights={highlights}
+              onEditorReady={setEditor}
             />
           </div>
         </div>

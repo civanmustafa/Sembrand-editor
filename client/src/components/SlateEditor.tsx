@@ -1,5 +1,4 @@
-import { useCallback, useMemo } from 'react';
-import * as React from 'react';
+import { useCallback, useMemo, useEffect, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createEditor, Descendant, Element as SlateElement, Editor } from 'slate';
 import { Slate, Editable, withReact, useSlateStatic } from 'slate-react';
 import { withHistory } from 'slate-history';
@@ -56,7 +55,7 @@ export default function SlateEditor({
 }: SlateEditorProps) {
   const editor = useMemo(() => withHistory(withReact(createEditor())), []);
   
-  React.useEffect(() => {
+  useEffect(() => {
     if (onEditorReady) {
       onEditorReady(editor);
     }
@@ -74,7 +73,7 @@ export default function SlateEditor({
     [highlightedKeyword, highlights]
   );
 
-  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((event: ReactKeyboardEvent) => {
     for (const hotkey in HOTKEYS) {
       if (isHotkey(hotkey, event as any)) {
         event.preventDefault();
