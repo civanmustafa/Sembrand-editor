@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Descendant } from 'slate';
-import SlateEditor from './SlateEditor';
+import SlateEditor, { HighlightConfig } from './SlateEditor';
 import { Card } from '@/components/ui/card';
 
 interface ContentEditorProps {
   content: string;
   onChange: (content: string) => void;
   highlightedKeyword?: string | null;
+  highlights?: HighlightConfig[];
+  onEditorReady?: (editor: any) => void;
 }
 
 const textToSlateValue = (text: string): Descendant[] => {
@@ -69,7 +71,9 @@ const slateValueToText = (value: Descendant[]): string => {
 export default function ContentEditor({ 
   content, 
   onChange,
-  highlightedKeyword
+  highlightedKeyword,
+  highlights = [],
+  onEditorReady
 }: ContentEditorProps) {
   const [slateValue, setSlateValue] = useState<Descendant[]>(() => 
     textToSlateValue(content)
@@ -94,6 +98,8 @@ export default function ContentEditor({
           value={slateValue}
           onChange={handleChange}
           highlightedKeyword={highlightedKeyword}
+          highlights={highlights}
+          onEditorReady={onEditorReady}
         />
       </div>
     </Card>

@@ -52,14 +52,14 @@ export default function CriteriaCard({
   const Icon = config.icon;
 
   return (
-    <Card className={`p-6 border-r-4 ${config.border} ${config.bg}`} data-testid={`card-criteria-${title}`}>
+    <Card className={`p-6 border-r-4 ${config.border} ${config.bg}`} data-testid={`card-criteria-${title}`} dir="rtl">
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <h3 className="font-semibold text-lg text-foreground mb-1">{title}</h3>
+            <h3 className="font-semibold text-lg text-foreground mb-1 text-right">{title}</h3>
             {description && (
-              <p className="text-sm text-muted-foreground">{description}</p>
+              <p className="text-sm text-muted-foreground text-right">{description}</p>
             )}
           </div>
           <Icon className={`w-6 h-6 text-${config.color} shrink-0`} />
@@ -68,11 +68,11 @@ export default function CriteriaCard({
         {/* Metrics */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">المطلوب</p>
-            <p className="font-mono text-sm font-medium">{required}</p>
+            <p className="text-xs text-muted-foreground text-right">المطلوب</p>
+            <p className="font-mono text-sm font-medium text-right">{required}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">الحالي</p>
+            <p className="text-xs text-muted-foreground text-right">الحالي</p>
             <Badge className={`font-mono ${config.badgeClass}`}>
               {current}
             </Badge>
@@ -86,7 +86,7 @@ export default function CriteriaCard({
               {details.map((detail, index) => (
                 <li key={index} className="flex items-start gap-2">
                   <span className="text-primary mt-1">•</span>
-                  <span>{detail}</span>
+                  <span className="text-right">{detail}</span>
                 </li>
               ))}
             </ul>

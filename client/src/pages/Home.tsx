@@ -1,11 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import ContentEditor from '@/components/ContentEditor';
 import KeywordInput from '@/components/KeywordInput';
 import KeywordAnalysis from '@/components/KeywordAnalysis';
 import RepeatedPhrases from '@/components/RepeatedPhrases';
+import StructureAnalysis from '@/components/StructureAnalysis';
 import ThemeToggle from '@/components/ThemeToggle';
+import SearchReplace from '@/components/SearchReplace';
 import { FileSearch } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { HighlightConfig } from '@/components/SlateEditor';
+import { normalizeArabicText } from '@/lib/arabicUtils';
 
 export default function Home() {
   const [content, setContent] = useState('');
@@ -16,6 +20,9 @@ export default function Home() {
   const [subKeyword4, setSubKeyword4] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [highlightedKeyword, setHighlightedKeyword] = useState<string | null>(null);
+  const [highlights, setHighlights] = useState<HighlightConfig[]>([]);
+  const [editor, setEditor] = useState<any>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const handleKeywordClick = (keyword: string) => {
     if (highlightedKeyword === keyword) {
@@ -25,9 +32,101 @@ export default function Home() {
     }
   };
 
+  const handleHighlightAllKeywords = useCallback(() => {
+    const newHighlights: HighlightConfig[] = [];
+    
+    if (primaryKeyword) {
+      newHighlights.push({
+        text: primaryKeyword,
+        color: 'green',
+        type: 'primary'
+      });
+    }
+    
+    [subKeyword1, subKeyword2, subKeyword3, subKeyword4].forEach(keyword => {
+      if (keyword) {
+        newHighlights.push({
+          text: keyword,
+          color: 'orange',
+          type: 'secondary'
+        });
+      }
+    });
+    
+    if (companyName) {
+      newHighlights.push({
+        text: companyName,
+        color: 'red',
+        type: 'company'
+      });
+    }
+    
+    setHighlights(newHighlights);
+  }, [primaryKeyword, subKeyword1, subKeyword2, subKeyword3, subKeyword4, companyName]);
+
+  const handleClearAllHighlights = useCallback(() => {
+    setHighlights([]);
+  }, []);
+
+  const handleReplace = useCallback((searchText: string, replaceText: string, replaceAll: boolean) => {
+    const normalizedSearch = normalizeArabicText(searchText);
+    const normalizedContent = normalizeArabicText(content);
+    
+    if (replaceAll) {
+      let newContent = content;
+      let searchIndex = 0;
+      let offset = 0;
+      
+      while ((searchIndex = normalizedContent.indexOf(normalizedSearch, searchIndex)) !== -1) {
+        const actualIndex = searchIndex + offset;
+        newContent = newContent.substring(0, actualIndex) +
+                     replaceText +
+                     newContent.substring(actualIndex + searchText.length);
+        offset += replaceText.length - searchText.length;
+        searchIndex += normalizedSearch.length;
+      }
+      setContent(newContent);
+    } else {
+      const index = normalizedContent.indexOf(normalizedSearch);
+      if (index !== -1) {
+        setContent(
+          content.substring(0, index) +
+          replaceText +
+          content.substring(index + searchText.length)
+        );
+      }
+    }
+  }, [content]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'f') {
+        e.preventDefault();
+        setSearchOpen(true);
+      } else if (e.altKey && e.key === 'j') {
+        e.preventDefault();
+        handleHighlightAllKeywords();
+      } else if (e.altKey && e.key === 'l') {
+        e.preventDefault();
+        handleClearAllHighlights();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleHighlightAllKeywords, handleClearAllHighlights]);
+
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
-      <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
+    <>
+      <SearchReplace
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        content={content}
+        onReplace={handleReplace}
+      />
+      
+      <div className="min-h-screen bg-background" dir="rtl">
+        <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -63,15 +162,22 @@ export default function Home() {
                 onCompanyNameChange={setCompanyName}
               />
               
-              <Tabs defaultValue="keywords" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
+              <Tabs defaultValue="structure" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="structure" data-testid="tab-structure">
+                    الهيكل والمحتوى
+                  </TabsTrigger>
                   <TabsTrigger value="keywords" data-testid="tab-keywords">
-                    تحليل الكلمات
+                    الكلمات المفتاحية
                   </TabsTrigger>
                   <TabsTrigger value="phrases" data-testid="tab-phrases">
                     الجمل المكررة
                   </TabsTrigger>
                 </TabsList>
+                
+                <TabsContent value="structure" className="mt-4">
+                  <StructureAnalysis content={content} />
+                </TabsContent>
                 
                 <TabsContent value="keywords" className="mt-4">
                   <KeywordAnalysis
@@ -84,6 +190,8 @@ export default function Home() {
                     companyName={companyName}
                     onKeywordClick={handleKeywordClick}
                     highlightedKeyword={highlightedKeyword}
+                    onHighlightAllKeywords={handleHighlightAllKeywords}
+                    onClearAllHighlights={handleClearAllHighlights}
                   />
                 </TabsContent>
                 
@@ -103,10 +211,13 @@ export default function Home() {
               content={content}
               onChange={setContent}
               highlightedKeyword={highlightedKeyword}
+              highlights={highlights}
+              onEditorReady={setEditor}
             />
           </div>
         </div>
       </main>
     </div>
+    </>
   );
 }

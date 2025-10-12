@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useEffect, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createEditor, Descendant, Element as SlateElement, Editor } from 'slate';
 import { Slate, Editable, withReact, useSlateStatic } from 'slate-react';
 import { withHistory } from 'slate-history';
@@ -20,25 +20,46 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { normalizeArabicText } from '@/lib/arabicUtils';
 
 const HOTKEYS = {
   'mod+b': 'bold',
   'mod+i': 'italic',
   'mod+u': 'underline',
+  'alt+2': 'heading-two',
+  'alt+3': 'heading-three',
+  'alt+4': 'heading-four',
+  'alt+`': 'paragraph',
 } as const;
+
+export interface HighlightConfig {
+  text: string;
+  color: 'green' | 'orange' | 'red' | 'purple' | 'blue' | 'yellow';
+  type: 'primary' | 'secondary' | 'company' | 'phrase' | 'violation';
+}
 
 interface SlateEditorProps {
   value: Descendant[];
   onChange: (value: Descendant[]) => void;
   highlightedKeyword?: string | null;
+  highlights?: HighlightConfig[];
+  onEditorReady?: (editor: any) => void;
 }
 
 export default function SlateEditor({
   value,
   onChange,
-  highlightedKeyword
+  highlightedKeyword,
+  highlights = [],
+  onEditorReady
 }: SlateEditorProps) {
   const editor = useMemo(() => withHistory(withReact(createEditor())), []);
+  
+  useEffect(() => {
+    if (onEditorReady) {
+      onEditorReady(editor);
+    }
+  }, [editor, onEditorReady]);
   
   const renderElement = useCallback((props: any) => <Element {...props} />, []);
   const renderLeaf = useCallback(
@@ -46,17 +67,23 @@ export default function SlateEditor({
       <Leaf
         {...props}
         highlightedKeyword={highlightedKeyword}
+        highlights={highlights}
       />
     ),
-    [highlightedKeyword]
+    [highlightedKeyword, highlights]
   );
 
-  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((event: ReactKeyboardEvent) => {
     for (const hotkey in HOTKEYS) {
       if (isHotkey(hotkey, event as any)) {
         event.preventDefault();
-        const mark = HOTKEYS[hotkey as keyof typeof HOTKEYS];
-        toggleMark(editor, mark);
+        const action = HOTKEYS[hotkey as keyof typeof HOTKEYS];
+        
+        if (['heading-two', 'heading-three', 'heading-four', 'paragraph'].includes(action)) {
+          toggleBlock(editor, action);
+        } else {
+          toggleMark(editor, action);
+        }
       }
     }
   }, [editor]);
@@ -111,7 +138,7 @@ const toggleBlock = (editor: any, format: string) => {
 
   editor.unwrapNodes({
     match: (n: any) =>
-      !editor.isEditor(n) &&
+      !Editor.isEditor(n) &&
       SlateElement.isElement(n) &&
       LIST_TYPES.includes((n as any).type),
     split: true,
@@ -146,7 +173,7 @@ const isBlockActive = (editor: any, format: string) => {
     editor.nodes({
       at: editor.unhangRange(selection),
       match: (n: any) => {
-        if (!editor.isEditor(n) && SlateElement.isElement(n)) {
+        if (!Editor.isEditor(n) && SlateElement.isElement(n)) {
           return (n as any).type === format;
         }
         return false;
@@ -223,7 +250,7 @@ const Element = ({ attributes, children, element }: any) => {
   }
 };
 
-const Leaf = ({ attributes, children, leaf, highlightedKeyword }: any) => {
+const Leaf = ({ attributes, children, leaf, highlightedKeyword, highlights = [] }: any) => {
   let content = children;
 
   if (leaf.bold) {
@@ -243,19 +270,84 @@ const Leaf = ({ attributes, children, leaf, highlightedKeyword }: any) => {
   }
 
   const text = leaf.text || '';
-  const lowerText = text.toLowerCase();
   
-  let highlighted = false;
-  if (highlightedKeyword && lowerText.includes(highlightedKeyword.toLowerCase())) {
-    highlighted = true;
+  const colorClasses = {
+    green: 'bg-green-500/30 dark:bg-green-500/40 text-green-900 dark:text-green-100',
+    orange: 'bg-orange-500/30 dark:bg-orange-500/40 text-orange-900 dark:text-orange-100',
+    red: 'bg-red-500/30 dark:bg-red-500/40 text-red-900 dark:text-red-100',
+    purple: 'bg-purple-500/30 dark:bg-purple-500/40 text-purple-900 dark:text-purple-100',
+    blue: 'bg-blue-500/30 dark:bg-blue-500/40 text-blue-900 dark:text-blue-100',
+    yellow: 'bg-yellow-500/30 dark:bg-yellow-500/40 text-yellow-900 dark:text-yellow-100',
+  };
+
+  const parts: Array<{text: string, color?: string, tooltip?: string}> = [];
+  let currentIndex = 0;
+  const normalizedText = normalizeArabicText(text);
+  
+  const matches: Array<{start: number, end: number, color: string, tooltip: string}> = [];
+  
+  highlights.forEach((h: HighlightConfig) => {
+    const normalizedHighlight = normalizeArabicText(h.text);
+    let searchIndex = 0;
+    
+    while (searchIndex < normalizedText.length) {
+      const foundIndex = normalizedText.indexOf(normalizedHighlight, searchIndex);
+      if (foundIndex === -1) break;
+      
+      matches.push({
+        start: foundIndex,
+        end: foundIndex + h.text.length,
+        color: h.color,
+        tooltip: `${h.type}: ${h.text}`
+      });
+      
+      searchIndex = foundIndex + 1;
+    }
+  });
+  
+  matches.sort((a, b) => a.start - b.start);
+  
+  let lastEnd = 0;
+  matches.forEach(match => {
+    if (match.start > lastEnd) {
+      parts.push({ text: text.substring(lastEnd, match.start) });
+    }
+    
+    if (match.start >= lastEnd) {
+      parts.push({
+        text: text.substring(match.start, match.end),
+        color: match.color,
+        tooltip: match.tooltip
+      });
+      lastEnd = Math.max(lastEnd, match.end);
+    }
+  });
+  
+  if (lastEnd < text.length) {
+    parts.push({ text: text.substring(lastEnd) });
+  }
+
+  if (parts.length === 0) {
+    parts.push({ text });
   }
 
   return (
-    <span 
-      {...attributes} 
-      className={highlighted ? 'bg-primary/30 text-primary-foreground rounded px-0.5' : ''}
-    >
-      {content}
+    <span {...attributes}>
+      {parts.map((part, index) => {
+        if (part.color) {
+          return (
+            <span
+              key={index}
+              className={`${colorClasses[part.color as keyof typeof colorClasses]} rounded px-0.5 cursor-help`}
+              title={part.tooltip}
+            >
+              {part.text}
+            </span>
+          );
+        }
+        return <span key={index}>{part.text}</span>;
+      })}
+      {children}
     </span>
   );
 };

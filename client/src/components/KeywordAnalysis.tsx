@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Check, X } from 'lucide-react';
+import { Copy, Check, X, Highlighter, HighlighterIcon } from 'lucide-react';
 import { useState } from 'react';
+import { normalizeArabicText, findAllOccurrences } from '@/lib/arabicUtils';
 
 interface KeywordAnalysisProps {
   content: string;
@@ -14,6 +15,8 @@ interface KeywordAnalysisProps {
   companyName: string;
   onKeywordClick: (keyword: string) => void;
   highlightedKeyword: string | null;
+  onHighlightAllKeywords?: () => void;
+  onClearAllHighlights?: () => void;
 }
 
 interface AnalysisResult {
@@ -39,8 +42,21 @@ export default function KeywordAnalysis({
   companyName,
   onKeywordClick,
   highlightedKeyword,
+  onHighlightAllKeywords,
+  onClearAllHighlights,
 }: KeywordAnalysisProps) {
   const [copiedKeyword, setCopiedKeyword] = useState<string | null>(null);
+  const [allHighlighted, setAllHighlighted] = useState(false);
+
+  const handleToggleAllHighlights = () => {
+    if (allHighlighted) {
+      onClearAllHighlights?.();
+      setAllHighlighted(false);
+    } else {
+      onHighlightAllKeywords?.();
+      setAllHighlighted(true);
+    }
+  };
 
   const analyzeKeyword = (
     keyword: string,
@@ -61,12 +77,8 @@ export default function KeywordAnalysis({
     const words = content.split(/\s+/).filter(word => word.length > 0);
     const totalWords = words.length;
     
-    const lowerContent = content.toLowerCase();
-    const lowerKeyword = keyword.toLowerCase();
-    
-    const regex = new RegExp(lowerKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-    const matches = lowerContent.match(regex);
-    const count = matches ? matches.length : 0;
+    const occurrences = findAllOccurrences(content, keyword);
+    const count = occurrences.length;
     
     const percentage = totalWords > 0 ? (count / totalWords) * 100 : 0;
     
@@ -85,26 +97,26 @@ export default function KeywordAnalysis({
       const headings = content.match(/^#+\s+.+$/gm) || [];
       
       result.inFirstParagraph = paragraphs.length > 0 ? 
-        paragraphs[0]?.toLowerCase().includes(lowerKeyword) ?? false : false;
+        findAllOccurrences(paragraphs[0] || '', keyword).length > 0 : false;
       result.inLastParagraph = paragraphs.length > 0 ? 
-        paragraphs[paragraphs.length - 1]?.toLowerCase().includes(lowerKeyword) ?? false : false;
+        findAllOccurrences(paragraphs[paragraphs.length - 1] || '', keyword).length > 0 : false;
       result.inFirstHeading = headings.length > 0 ? 
-        headings[0]?.toLowerCase().includes(lowerKeyword) ?? false : false;
+        findAllOccurrences(headings[0] || '', keyword).length > 0 : false;
       result.inLastHeading = headings.length > 0 ? 
-        headings[headings.length - 1]?.toLowerCase().includes(lowerKeyword) ?? false : false;
+        findAllOccurrences(headings[headings.length - 1] || '', keyword).length > 0 : false;
     }
 
     if (checkSub) {
       const h2Headings = content.match(/^##\s+.+$/gm) || [];
-      const h2WithKeyword = h2Headings.filter(h => h.toLowerCase().includes(lowerKeyword));
+      const h2WithKeyword = h2Headings.filter(h => findAllOccurrences(h, keyword).length > 0);
       result.inH2Headings = h2WithKeyword;
       
       if (h2WithKeyword.length > 0) {
         const sections = content.split(/^##\s+/gm);
         result.inRelatedParagraphs = sections.some(section => {
-          const sectionLower = section.toLowerCase();
-          const hasHeadingWithKeyword = sectionLower.split('\n')[0]?.includes(lowerKeyword);
-          const hasParagraphWithKeyword = sectionLower.includes(lowerKeyword);
+          const firstLine = section.split('\n')[0] || '';
+          const hasHeadingWithKeyword = findAllOccurrences(firstLine, keyword).length > 0;
+          const hasParagraphWithKeyword = findAllOccurrences(section, keyword).length > 0;
           return hasHeadingWithKeyword && hasParagraphWithKeyword;
         });
       }
@@ -255,6 +267,18 @@ export default function KeywordAnalysis({
 
   return (
     <div className="space-y-4">
+      <div className="flex gap-2">
+        <Button
+          onClick={handleToggleAllHighlights}
+          variant={allHighlighted ? "default" : "outline"}
+          className="flex-1"
+          data-testid="button-toggle-all-highlights"
+        >
+          <HighlighterIcon className="w-4 h-4 ml-2" />
+          {allHighlighted ? "مسح التمييز" : "تمييز جميع الكلمات"}
+        </Button>
+      </div>
+      
       <KeywordCard
         title="الكلمة المفتاحية الأساسية"
         keyword={primaryKeyword}
