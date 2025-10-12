@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useEffect } from 'react';
 import { createEditor, Descendant, Element as SlateElement, Text, BaseEditor } from 'slate';
-import { Slate, Editable, withReact, ReactEditor } from 'slate-react';
+import { Slate, Editable, withReact, ReactEditor, useSlateStatic } from 'slate-react';
 import { withHistory, HistoryEditor } from 'slate-history';
 // @ts-ignore - no types available
 import isHotkey from 'is-hotkey';
@@ -10,6 +10,8 @@ import {
   Underline,
   Heading1,
   Heading2,
+  Heading3,
+  Heading4,
   List,
   ListOrdered,
   AlignLeft,
@@ -77,6 +79,8 @@ export default function SlateEditor({
           
           <BlockButton format="heading-one" icon={<Heading1 className="w-4 h-4" />} />
           <BlockButton format="heading-two" icon={<Heading2 className="w-4 h-4" />} />
+          <BlockButton format="heading-three" icon={<Heading3 className="w-4 h-4" />} />
+          <BlockButton format="heading-four" icon={<Heading4 className="w-4 h-4" />} />
           <BlockButton format="block-quote" icon={<Quote className="w-4 h-4" />} />
           
           <Separator orientation="vertical" className="h-6 mx-1" />
@@ -213,6 +217,18 @@ const Element = ({ attributes, children, element }: any) => {
           {children}
         </h2>
       );
+    case 'heading-three':
+      return (
+        <h3 style={style} {...attributes} className="text-xl font-semibold my-2">
+          {children}
+        </h3>
+      );
+    case 'heading-four':
+      return (
+        <h4 style={style} {...attributes} className="text-lg font-medium my-2">
+          {children}
+        </h4>
+      );
     case 'list-item':
       return (
         <li style={style} {...attributes}>
@@ -275,7 +291,7 @@ const Leaf = ({ attributes, children, leaf, primaryKeyword, secondaryKeywords }:
 };
 
 const BlockButton = ({ format, icon }: { format: string; icon: React.ReactNode }) => {
-  const editor = withReact(createEditor());
+  const editor = useSlateStatic();
   
   return (
     <Button
@@ -294,7 +310,7 @@ const BlockButton = ({ format, icon }: { format: string; icon: React.ReactNode }
 };
 
 const MarkButton = ({ format, icon }: { format: string; icon: React.ReactNode }) => {
-  const editor = withReact(createEditor());
+  const editor = useSlateStatic();
   
   return (
     <Button

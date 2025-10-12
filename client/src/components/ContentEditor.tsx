@@ -25,15 +25,25 @@ const textToSlateValue = (text: string): Descendant[] => {
   
   return paragraphs.map(para => {
     // Check if it starts with heading markers
-    if (para.startsWith('# ')) {
+    if (para.startsWith('#### ')) {
       return {
-        type: 'heading-one',
-        children: [{ text: para.slice(2) }],
+        type: 'heading-four',
+        children: [{ text: para.slice(5) }],
+      } as any;
+    } else if (para.startsWith('### ')) {
+      return {
+        type: 'heading-three',
+        children: [{ text: para.slice(4) }],
       } as any;
     } else if (para.startsWith('## ')) {
       return {
         type: 'heading-two',
         children: [{ text: para.slice(3) }],
+      } as any;
+    } else if (para.startsWith('# ')) {
+      return {
+        type: 'heading-one',
+        children: [{ text: para.slice(2) }],
       } as any;
     } else {
       return {
