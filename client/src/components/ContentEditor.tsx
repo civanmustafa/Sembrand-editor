@@ -1,4 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
+import { Descendant } from 'slate';
+import SlateEditor from './SlateEditor';
 import { Highlighter } from 'lucide-react';
 
 interface ContentEditorProps {
@@ -8,46 +10,66 @@ interface ContentEditorProps {
   secondaryKeywords?: string[];
 }
 
+// Convert plain text to Slate value
+const textToSlateValue = (text: string): Descendant[] => {
+  if (!text.trim()) {
+    return [
+      {
+        type: 'paragraph',
+        children: [{ text: '' }],
+      } as any,
+    ];
+  }
+
+  const paragraphs = text.split('\n\n').filter(p => p.trim());
+  
+  return paragraphs.map(para => {
+    // Check if it starts with heading markers
+    if (para.startsWith('# ')) {
+      return {
+        type: 'heading-one',
+        children: [{ text: para.slice(2) }],
+      } as any;
+    } else if (para.startsWith('## ')) {
+      return {
+        type: 'heading-two',
+        children: [{ text: para.slice(3) }],
+      } as any;
+    } else {
+      return {
+        type: 'paragraph',
+        children: [{ text: para }],
+      } as any;
+    }
+  });
+};
+
+// Convert Slate value to plain text
+const slateValueToText = (value: Descendant[]): string => {
+  return value
+    .map((node: any) => {
+      if (node.children) {
+        return node.children.map((child: any) => child.text || '').join('');
+      }
+      return '';
+    })
+    .join('\n\n');
+};
+
 export default function ContentEditor({ 
   content, 
   onChange, 
   primaryKeyword = '', 
   secondaryKeywords = [] 
 }: ContentEditorProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const [highlightedContent, setHighlightedContent] = useState(content);
+  const [slateValue, setSlateValue] = useState<Descendant[]>(() => 
+    textToSlateValue(content)
+  );
 
-  useEffect(() => {
-    if (!editorRef.current) return;
-    
-    let html = content;
-    
-    // Highlight primary keyword (green)
-    if (primaryKeyword && primaryKeyword.trim()) {
-      const regex = new RegExp(`(${primaryKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-      html = html.replace(regex, '<mark class="bg-success/20 text-success-foreground">$1</mark>');
-    }
-    
-    // Highlight secondary keywords (yellow)
-    secondaryKeywords.forEach(keyword => {
-      if (keyword && keyword.trim()) {
-        const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        html = html.replace(regex, '<mark class="bg-warning/25 text-warning-foreground">$1</mark>');
-      }
-    });
-    
-    setHighlightedContent(html);
-  }, [content, primaryKeyword, secondaryKeywords]);
-
-  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
-    const text = e.currentTarget.textContent || '';
-    onChange(text);
-  };
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const text = e.clipboardData.getData('text/plain');
-    document.execCommand('insertText', false, text);
+  const handleChange = (newValue: Descendant[]) => {
+    setSlateValue(newValue);
+    const plainText = slateValueToText(newValue);
+    onChange(plainText);
   };
 
   return (
@@ -57,19 +79,14 @@ export default function ContentEditor({
         <span>المحرر</span>
       </div>
       
-      <div
-        ref={editorRef}
-        contentEditable
-        onInput={handleInput}
-        onPaste={handlePaste}
-        data-placeholder="ابدأ الكتابة أو الصق المحتوى هنا..."
-        className="w-full h-full p-6 pt-16 bg-muted/30 rounded-lg border border-border
-                   focus:outline-none focus:ring-2 focus:ring-primary/50
-                   text-foreground leading-relaxed text-right
-                   overflow-y-auto"
-        dangerouslySetInnerHTML={{ __html: highlightedContent }}
-        data-testid="input-content-editor"
-      />
+      <div className="pt-12 h-full overflow-y-auto">
+        <SlateEditor
+          value={slateValue}
+          onChange={handleChange}
+          primaryKeyword={primaryKeyword}
+          secondaryKeywords={secondaryKeywords}
+        />
+      </div>
     </div>
   );
 }
