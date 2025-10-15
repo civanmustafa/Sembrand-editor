@@ -381,11 +381,6 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         </CardContent>
       </Card>
 
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-foreground mb-2">معايير الهيكل والمحتوى</h2>
-        <p className="text-muted-foreground">تحليل شامل لبنية المحتوى ومطابقتها للمعايير</p>
-      </div>
-
       <CriteriaCard
         title="الكلمات"
         status={wordCountStatus}

@@ -69,8 +69,8 @@ export default function CriteriaCard({
                         Math.max(0, ((totalCount - violationCount) / totalCount) * 100);
 
   return (
-    <Card className={`p-4 border-r-4 ${config.border} ${config.bg} ${isHighlighted ? 'ring-2 ring-primary' : ''}`} data-testid={`card-criteria-${title}`} dir="rtl">
-      <div className="space-y-3">
+    <Card className={`p-2 border-r-4 ${config.border} ${config.bg} ${isHighlighted ? 'ring-2 ring-primary' : ''}`} data-testid={`card-criteria-${title}`} dir="rtl">
+      <div className="space-y-2">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 flex items-center gap-2">

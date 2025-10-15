@@ -68,6 +68,8 @@ export default function KeywordInput({
           />
         </div>
 
+        <div className="h-px bg-border my-4" />
+
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">
             العبارة الفرعية 1
@@ -119,6 +121,8 @@ export default function KeywordInput({
             data-testid="input-sub-keyword-4"
           />
         </div>
+
+        <div className="h-px bg-border my-4" />
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">

@@ -16,10 +16,12 @@ export default function CategoryHeader({ title, emoji, violationCount, totalCoun
   return (
     <Card className="p-4 bg-gradient-to-r from-primary/5 to-accent/5 border-r-4 border-r-primary">
       <div className="space-y-3">
-        <h3 className="text-xl font-semibold text-foreground text-right">
-          {emoji && <span className="ml-2">{emoji}</span>}
-          {title}
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-semibold text-foreground">
+            {title}
+          </h3>
+          {emoji && <span className="text-2xl">{emoji}</span>}
+        </div>
         <div className="space-y-1">
           <Progress value={progressValue} className="h-2" />
           <p className="text-xs text-muted-foreground text-right">
