@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Copy, Check, Highlighter, ChevronDown, ChevronUp, FileText, Repeat, Hash, ListOrdered } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
-import { normalizeArabicText } from '@/lib/arabicUtils';
+import { normalizeArabicText, normalizeForAnalysis } from '@/lib/arabicUtils';
 
 interface RepeatedPhrasesProps {
   content: string;
@@ -81,13 +81,17 @@ export default function RepeatedPhrases({
       };
     }
 
-    const words = normalizeArabicText(content)
+    const normalizedWords = normalizeArabicText(content)
       .replace(/[^\u0600-\u06FF\s]/g, ' ')
       .replace(/\s+/g, ' ')
       .split(' ')
       .filter(w => w.length > 0);
 
-    const uniqueWordsSet = new Set(words);
+    const originalWords = normalizeForAnalysis(content)
+      .split(' ')
+      .filter(w => w.length > 0);
+
+    const uniqueWordsSet = new Set(normalizedWords);
     
     const getColorForPhrase = (phrase: string): string => {
       let hash = 0;
@@ -100,20 +104,27 @@ export default function RepeatedPhrases({
     };
 
     const extractPhrases = (n: number): PhraseData[] => {
-      const phrasesMap = new Map<string, number>();
+      const phrasesMap = new Map<string, { count: number; originalPhrase: string }>();
       
-      for (let i = 0; i <= words.length - n; i++) {
-        const phrase = words.slice(i, i + n).join(' ');
-        phrasesMap.set(phrase, (phrasesMap.get(phrase) || 0) + 1);
+      for (let i = 0; i <= normalizedWords.length - n; i++) {
+        const normalizedPhrase = normalizedWords.slice(i, i + n).join(' ');
+        const originalPhrase = originalWords.slice(i, i + n).join(' ');
+        
+        const existing = phrasesMap.get(normalizedPhrase);
+        if (existing) {
+          existing.count += 1;
+        } else {
+          phrasesMap.set(normalizedPhrase, { count: 1, originalPhrase });
+        }
       }
 
       return Array.from(phrasesMap.entries())
-        .filter(([_, count]) => count > 1)
-        .map(([phrase, count]) => ({
-          phrase,
-          count,
-          selected: selectedPhrases.has(phrase),
-          color: getColorForPhrase(phrase),
+        .filter(([_, data]) => data.count > 1)
+        .map(([normalizedPhrase, data]) => ({
+          phrase: data.originalPhrase,
+          count: data.count,
+          selected: selectedPhrases.has(data.originalPhrase),
+          color: getColorForPhrase(data.originalPhrase),
         }))
         .sort((a, b) => b.count - a.count);
     };
@@ -150,7 +161,7 @@ export default function RepeatedPhrases({
       sevenWord,
       eightWord,
       stats: {
-        totalWords: words.length,
+        totalWords: originalWords.length,
         uniqueWords: uniqueWordsSet.size,
         repeatedPhrasesCount: allPhrases.length,
         totalRepetitions,

@@ -8,6 +8,14 @@ export function normalizeArabicText(text: string): string {
     .toLowerCase();
 }
 
+export function normalizeForAnalysis(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\u0600-\u06FF\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export function findAllOccurrences(text: string, searchTerm: string): Array<{start: number, end: number, text: string}> {
   const normalizedText = normalizeArabicText(text);
   const normalizedSearch = normalizeArabicText(searchTerm);

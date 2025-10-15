@@ -81,12 +81,21 @@ export default function QuillEditor({
       yellow: '#eab308'
     };
     
+    const normalizeForComparison = (str: string) => {
+      return str
+        .replace(/[أإآ]/g, 'ا')
+        .replace(/[ؤ]/g, 'و')
+        .replace(/[ئ]/g, 'ي')
+        .replace(/[ة]/g, 'ه')
+        .replace(/[ى]/g, 'ي')
+        .toLowerCase();
+    };
+    
     const applyHighlight = (text: string, color: string, borderColor?: string) => {
       if (!text) return;
       
       const textContent = editorContainer.textContent || '';
       
-      // For Arabic phrases, we need to find matches more flexibly
       const normalizeForSearch = (str: string) => {
         return str
           .toLowerCase()
@@ -100,8 +109,17 @@ export default function QuillEditor({
       
       if (words.length === 0) return;
       
-      // Create a regex pattern that allows for punctuation between words
-      const escapedWords = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      const escapedWords = words.map(w => {
+        const normalized = normalizeForComparison(w);
+        const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        
+        return escaped
+          .replace(/ا/g, '[اأإآ]')
+          .replace(/و/g, '[وؤ]')
+          .replace(/ي/g, '[يئى]')
+          .replace(/ه/g, '[هة]');
+      });
+      
       const regexPattern = escapedWords.join('[^\\u0600-\\u06FF\\s]*\\s+[^\\u0600-\\u06FF\\s]*');
       const regex = new RegExp(regexPattern, 'gi');
       
@@ -115,7 +133,6 @@ export default function QuillEditor({
         });
       }
       
-      // Apply highlights for each match
       matches.forEach(({start, end}) => {
         const range = document.createRange();
         let charCount = 0;
@@ -176,17 +193,15 @@ export default function QuillEditor({
       });
     };
     
-    // Apply multi-keyword highlights first
     highlights.forEach(h => {
       const highlightColor = colorMap[h.color] || h.color;
       applyHighlight(h.text, `${highlightColor}33`);
     });
     
-    // Apply single keyword highlight last (highest priority)
     if (highlightedKeyword) {
       applyHighlight(highlightedKeyword, `${colorMap.blue}66`, colorMap.blue);
     }
-  }, [highlightedKeyword, highlights, value]);
+  }, [highlightedKeyword, highlights]);
 
   const handleRemoveEmptyLines = () => {
     if (!quillRef.current) return;

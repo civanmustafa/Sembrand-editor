@@ -69,13 +69,13 @@ export default function CriteriaCard({
                         Math.max(0, ((totalCount - violationCount) / totalCount) * 100);
 
   return (
-    <Card className={`p-2 border-r-4 ${config.border} ${config.bg} ${isHighlighted ? 'ring-2 ring-primary' : ''}`} data-testid={`card-criteria-${title}`} dir="rtl">
-      <div className="space-y-2">
+    <Card className={`p-1 border-r-4 ${config.border} ${config.bg} ${isHighlighted ? 'ring-2 ring-primary' : ''}`} data-testid={`card-criteria-${title}`} dir="rtl">
+      <div className="space-y-1">
         {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 flex items-center gap-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 flex items-center gap-1.5">
             <h3 
-              className={`font-semibold text-base text-foreground text-right ${onClick && status === 'violation' ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+              className={`font-semibold text-sm text-foreground text-right ${onClick && status === 'violation' ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
               onClick={onClick && status === 'violation' ? onClick : undefined}
             >
               {title}
@@ -83,7 +83,7 @@ export default function CriteriaCard({
             {tooltipContent && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="w-4 h-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                  <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
                 </TooltipTrigger>
                 <TooltipContent side="left" className="max-w-xs">
                   <p className="text-sm whitespace-pre-line">{tooltipContent}</p>
@@ -91,28 +91,28 @@ export default function CriteriaCard({
               </Tooltip>
             )}
           </div>
-          <Icon className={`w-5 h-5 text-${config.color} shrink-0`} />
+          <Icon className={`w-4 h-4 text-${config.color} shrink-0`} />
         </div>
 
         {/* Progress Bar */}
         {status === 'violation' && violationCount > 0 && (
-          <div className="space-y-1">
-            <Progress value={progressValue} className="h-1.5" />
-            <p className="text-xs text-muted-foreground text-right">
+          <div className="space-y-0.5">
+            <Progress value={progressValue} className="h-1" />
+            <p className="text-[10px] text-muted-foreground text-right">
               {violationCount} مخالفة
             </p>
           </div>
         )}
 
         {/* Metrics */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-0.5">
-            <p className="text-xs text-muted-foreground text-right">المطلوب</p>
-            <p className="font-mono text-sm font-medium text-right break-words">{required}</p>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-0">
+            <p className="text-[10px] text-muted-foreground text-right">المطلوب</p>
+            <p className="font-mono text-xs font-medium text-right break-words">{required}</p>
           </div>
-          <div className="space-y-0.5">
-            <p className="text-xs text-muted-foreground text-right">الحالي</p>
-            <Badge className={`font-mono ${config.badgeClass} text-xs`}>
+          <div className="space-y-0">
+            <p className="text-[10px] text-muted-foreground text-right">الحالي</p>
+            <Badge className={`font-mono ${config.badgeClass} text-[10px]`}>
               {current}
             </Badge>
           </div>
@@ -120,10 +120,10 @@ export default function CriteriaCard({
 
         {/* Details */}
         {details && details.length > 0 && (
-          <div className="pt-2 border-t border-border/50">
-            <ul className="space-y-1 text-xs text-muted-foreground">
+          <div className="pt-1 border-t border-border/50">
+            <ul className="space-y-0.5 text-[10px] text-muted-foreground">
               {details.map((detail, index) => (
-                <li key={index} className="flex items-start gap-2">
+                <li key={index} className="flex items-start gap-1.5">
                   <span className="text-primary mt-0.5">•</span>
                   <span className="text-right break-words">{detail}</span>
                 </li>
