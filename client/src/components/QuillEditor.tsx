@@ -217,15 +217,7 @@ export default function QuillEditor({
 
   const modules = useMemo(() => ({
     toolbar: {
-      container: [
-        [{ 'header': [1, 2, 3, 4, false] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-        [{ 'direction': 'rtl' }],
-        [{ 'align': [] }],
-        ['link', 'code-block'],
-        ['clean']
-      ]
+      container: '#custom-toolbar'
     }
   }), []);
 
@@ -254,11 +246,14 @@ export default function QuillEditor({
           direction: rtl;
           text-align: right;
         }
-        .quill-editor-wrapper .ql-toolbar {
-          direction: ltr;
+        .quill-editor-wrapper #custom-toolbar {
+          direction: rtl;
           display: flex;
           align-items: center;
           gap: 4px;
+          padding: 8px;
+          border-bottom: 1px solid hsl(var(--border));
+          background: hsl(var(--background));
         }
         .quill-editor-wrapper .highlight-mark {
           border-radius: 3px;
@@ -284,14 +279,72 @@ export default function QuillEditor({
         .ql-snow .ql-picker.ql-header .ql-picker-item:not([data-value])::before {
           content: 'نص عادي';
         }
-        .editor-custom-buttons {
+        #custom-toolbar .ql-formats {
+          margin-left: 8px;
+        }
+        #custom-toolbar .custom-actions {
+          margin-right: auto;
           display: flex;
           gap: 4px;
-          margin-right: auto;
-          margin-left: 8px;
         }
       `}</style>
       <div className="relative">
+        <div id="custom-toolbar">
+          <select className="ql-header" defaultValue="">
+            <option value="1">عنوان 1</option>
+            <option value="2">عنوان 2</option>
+            <option value="3">عنوان 3</option>
+            <option value="4">عنوان 4</option>
+            <option value="">نص عادي</option>
+          </select>
+          <span className="ql-formats">
+            <button className="ql-bold" />
+            <button className="ql-italic" />
+            <button className="ql-underline" />
+            <button className="ql-strike" />
+          </span>
+          <span className="ql-formats">
+            <button className="ql-list" value="ordered" />
+            <button className="ql-list" value="bullet" />
+          </span>
+          <span className="ql-formats">
+            <button className="ql-direction" value="rtl" />
+          </span>
+          <span className="ql-formats">
+            <select className="ql-align" />
+          </span>
+          <span className="ql-formats">
+            <button className="ql-link" />
+            <button className="ql-code-block" />
+          </span>
+          <span className="ql-formats">
+            <button className="ql-clean" />
+          </span>
+          <div className="custom-actions">
+            {onClearHighlights && (
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={onClearHighlights}
+                className="h-7 w-7"
+                data-testid="button-clear-highlights"
+                title="إلغاء جميع التمييز"
+              >
+                <EraserIcon className="w-3.5 h-3.5" />
+              </Button>
+            )}
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={handleRemoveEmptyLines}
+              className="h-7 w-7"
+              data-testid="button-remove-empty-lines"
+              title="مسح الأسطر الفارغة الزائدة"
+            >
+              <RemoveFormatting className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        </div>
         <ReactQuill
           ref={quillRef}
           theme="snow"
@@ -301,30 +354,6 @@ export default function QuillEditor({
           formats={formats}
           placeholder="ابدأ الكتابة أو الصق المحتوى هنا..."
         />
-        <div className="editor-custom-buttons absolute top-2 left-2 z-10">
-          {onClearHighlights && (
-            <Button
-              size="icon"
-              variant="outline"
-              onClick={onClearHighlights}
-              className="h-7 w-7 bg-background"
-              data-testid="button-clear-highlights"
-              title="إلغاء جميع التمييز"
-            >
-              <EraserIcon className="w-3.5 h-3.5" />
-            </Button>
-          )}
-          <Button
-            size="icon"
-            variant="outline"
-            onClick={handleRemoveEmptyLines}
-            className="h-7 w-7 bg-background"
-            data-testid="button-remove-empty-lines"
-            title="مسح الأسطر الفارغة الزائدة"
-          >
-            <RemoveFormatting className="w-3.5 h-3.5" />
-          </Button>
-        </div>
       </div>
     </div>
   );

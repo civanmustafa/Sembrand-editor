@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Copy, Check, Highlighter, ChevronDown, ChevronUp, FileText, Repeat, Hash, ListOrdered } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Progress } from '@/components/ui/progress';
 
 interface RepeatedPhrasesProps {
   content: string;
@@ -175,6 +176,24 @@ export default function RepeatedPhrases({
     });
   };
 
+  const toggleCategoryHighlight = (categoryPhrases: PhraseData[], e: React.MouseEvent) => {
+    e.stopPropagation();
+    const phrasesSet = new Set(categoryPhrases.map(p => p.phrase));
+    const allHighlighted = categoryPhrases.every(p => highlightedPhrases.has(p.phrase));
+    
+    if (allHighlighted) {
+      // Remove all phrases from this category
+      categoryPhrases.forEach(p => onPhraseClick(p.phrase));
+    } else {
+      // Add all phrases from this category that aren't already highlighted
+      categoryPhrases.forEach(p => {
+        if (!highlightedPhrases.has(p.phrase)) {
+          onPhraseClick(p.phrase);
+        }
+      });
+    }
+  };
+
   const PhraseGroup = ({
     title,
     phrases,
@@ -189,21 +208,38 @@ export default function RepeatedPhrases({
     if (phrases.length === 0) return null;
 
     const isOpen = openSections.has(sectionId);
+    const highlightedCount = phrases.filter(p => highlightedPhrases.has(p.phrase)).length;
+    const allHighlighted = phrases.length > 0 && highlightedCount === phrases.length;
+    const progressValue = (highlightedCount / phrases.length) * 100;
 
     return (
       <Collapsible open={isOpen} onOpenChange={() => toggleSection(sectionId)}>
         <Card>
-          <CollapsibleTrigger asChild>
-            <CardHeader className="pb-3 cursor-pointer hover:bg-accent/50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-sm font-medium">{title}</CardTitle>
-                  <Badge variant="outline">{phrases.length}</Badge>
-                </div>
-                {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between cursor-pointer" onClick={() => toggleSection(sectionId)}>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  onClick={(e) => toggleCategoryHighlight(phrases, e)}
+                  data-testid={`button-highlight-category-${testId}`}
+                  title={allHighlighted ? "إلغاء تمييز الكل" : "تمييز الكل"}
+                >
+                  <Highlighter className={`w-3.5 h-3.5 ${allHighlighted ? 'text-primary' : ''}`} />
+                </Button>
+                <CardTitle className="text-sm font-medium">{title}</CardTitle>
+                <Badge variant="outline">{phrases.length}</Badge>
               </div>
-            </CardHeader>
-          </CollapsibleTrigger>
+              {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </div>
+            <div className="mt-2 space-y-1">
+              <Progress value={progressValue} className="h-1.5" />
+              <p className="text-xs text-muted-foreground text-right">
+                {highlightedCount} من {phrases.length} مميزة
+              </p>
+            </div>
+          </CardHeader>
           <CollapsibleContent>
             <CardContent className="space-y-2 pt-0">
               {phrases.map((phraseData, idx) => {
@@ -252,57 +288,40 @@ export default function RepeatedPhrases({
   return (
     <div className="space-y-4">
       <Card className="bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">لوحة المعلومات</CardTitle>
-            {onHighlightAll && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={onHighlightAll}
-                className="h-8 gap-2"
-                data-testid="button-highlight-all-phrases"
-              >
-                <Highlighter className="w-3.5 h-3.5" />
-                تمييز الكل
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4">
+        <CardContent className="pt-6 grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Repeat className="w-4 h-4 text-primary" />
+            <div className="flex items-center gap-2 justify-end">
               <p className="text-sm text-muted-foreground">الجمل المكررة</p>
+              <Repeat className="w-4 h-4 text-primary" />
             </div>
-            <p className="text-2xl font-bold" data-testid="stat-repeated-phrases">
+            <p className="text-2xl font-bold text-right" data-testid="stat-repeated-phrases">
               {analysis.stats.repeatedPhrasesCount}
             </p>
           </div>
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <ListOrdered className="w-4 h-4 text-primary" />
+            <div className="flex items-center gap-2 justify-end">
               <p className="text-sm text-muted-foreground">إجمالي التكرار</p>
+              <ListOrdered className="w-4 h-4 text-primary" />
             </div>
-            <p className="text-2xl font-bold" data-testid="stat-total-repetitions">
+            <p className="text-2xl font-bold text-right" data-testid="stat-total-repetitions">
               {analysis.stats.totalRepetitions}
             </p>
           </div>
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Hash className="w-4 h-4 text-primary" />
+            <div className="flex items-center gap-2 justify-end">
               <p className="text-sm text-muted-foreground">الكلمات الفريدة</p>
+              <Hash className="w-4 h-4 text-primary" />
             </div>
-            <p className="text-2xl font-bold" data-testid="stat-unique-words">
+            <p className="text-2xl font-bold text-right" data-testid="stat-unique-words">
               {analysis.stats.uniqueWords}
             </p>
           </div>
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-primary" />
+            <div className="flex items-center gap-2 justify-end">
               <p className="text-sm text-muted-foreground">إجمالي الكلمات</p>
+              <FileText className="w-4 h-4 text-primary" />
             </div>
-            <p className="text-2xl font-bold" data-testid="stat-total-words">
+            <p className="text-2xl font-bold text-right" data-testid="stat-total-words">
               {analysis.stats.totalWords}
             </p>
           </div>

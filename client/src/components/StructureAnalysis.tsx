@@ -348,34 +348,31 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
   return (
     <div className="space-y-4">
       <Card className="bg-gradient-to-br from-accent/10 via-background to-primary/5">
-        <CardHeader>
-          <CardTitle className="text-base">لوحة المعلومات</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-3 gap-4">
+        <CardContent className="pt-6 grid grid-cols-3 gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <AlignLeft className="w-4 h-4 text-primary" />
+            <div className="flex items-center gap-2 justify-end">
               <p className="text-sm text-muted-foreground">عدد الفقرات</p>
+              <AlignLeft className="w-4 h-4 text-primary" />
             </div>
-            <p className="text-2xl font-bold" data-testid="stat-paragraphs">
+            <p className="text-2xl font-bold text-right" data-testid="stat-paragraphs">
               {analysis.paragraphCount}
             </p>
           </div>
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Heading className="w-4 h-4 text-primary" />
+            <div className="flex items-center gap-2 justify-end">
               <p className="text-sm text-muted-foreground">عدد العناوين</p>
+              <Heading className="w-4 h-4 text-primary" />
             </div>
-            <p className="text-2xl font-bold" data-testid="stat-headings">
+            <p className="text-2xl font-bold text-right" data-testid="stat-headings">
               {analysis.headingsCount}
             </p>
           </div>
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <List className="w-4 h-4 text-primary" />
+            <div className="flex items-center gap-2 justify-end">
               <p className="text-sm text-muted-foreground">عدد القوائم</p>
+              <List className="w-4 h-4 text-primary" />
             </div>
-            <p className="text-2xl font-bold" data-testid="stat-lists">
+            <p className="text-2xl font-bold text-right" data-testid="stat-lists">
               {analysis.listsCount}
             </p>
           </div>
@@ -423,6 +420,8 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         current={`${violatingParagraphs.length} فقرة مخالفة`}
         onClick={() => handleCriteriaClick('طول الفقرات', violatingParagraphs[0] || null, paragraphStatus)}
         isHighlighted={highlightedCriteria === 'طول الفقرات'}
+        violationCount={violatingParagraphs.length}
+        totalCount={analysis.paragraphs.length}
       />
 
       <div className="my-6 border-t border-border pt-4">
@@ -436,6 +435,8 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         required="تنظيم حسب عدد الكلمات"
         current={violatingH2Count > 0 ? `${violatingH2Count} عنوان مخالف` : 'جميع العناوين متوافقة'}
         details={h2Details.length > 0 ? h2Details : undefined}
+        violationCount={violatingH2Count}
+        totalCount={analysis.headings.h2.length}
       />
 
       <CriteriaCard
@@ -504,6 +505,8 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         status={repeatedParaStatus}
         required="أقل من 3"
         current={`${repeatedWordsInParagraphs}`}
+        violationCount={repeatedWordsInParagraphs}
+        totalCount={analysis.paragraphs.length}
       />
 
       <CriteriaCard
@@ -512,6 +515,8 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         status={repeatedHeadingStatus}
         required="0"
         current={`${headingsWithRepeatedWords}`}
+        violationCount={headingsWithRepeatedWords}
+        totalCount={analysis.headingsCount}
       />
 
       <CriteriaCard

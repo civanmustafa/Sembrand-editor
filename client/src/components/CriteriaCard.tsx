@@ -2,6 +2,7 @@ import { CheckCircle2, AlertTriangle, XCircle, Info } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Progress } from '@/components/ui/progress';
 
 type CriteriaStatus = 'achieved' | 'close' | 'violation';
 
@@ -15,6 +16,8 @@ interface CriteriaCardProps {
   onClick?: () => void;
   isHighlighted?: boolean;
   tooltipContent?: string;
+  violationCount?: number;
+  totalCount?: number;
 }
 
 export default function CriteriaCard({
@@ -26,7 +29,9 @@ export default function CriteriaCard({
   details,
   onClick,
   isHighlighted = false,
-  tooltipContent
+  tooltipContent,
+  violationCount = 0,
+  totalCount = 1
 }: CriteriaCardProps) {
   const statusConfig = {
     achieved: {
@@ -57,15 +62,20 @@ export default function CriteriaCard({
 
   const config = statusConfig[status];
   const Icon = config.icon;
+  
+  // Calculate progress (inverse - violations reduce the progress)
+  const progressValue = status === 'achieved' ? 100 : 
+                        status === 'close' ? 50 : 
+                        Math.max(0, ((totalCount - violationCount) / totalCount) * 100);
 
   return (
-    <Card className={`p-6 border-r-4 ${config.border} ${config.bg} ${isHighlighted ? 'ring-2 ring-primary' : ''}`} data-testid={`card-criteria-${title}`} dir="rtl">
-      <div className="space-y-4">
+    <Card className={`p-4 border-r-4 ${config.border} ${config.bg} ${isHighlighted ? 'ring-2 ring-primary' : ''}`} data-testid={`card-criteria-${title}`} dir="rtl">
+      <div className="space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 flex items-center gap-2">
             <h3 
-              className={`font-semibold text-lg text-foreground text-right ${onClick && status === 'violation' ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+              className={`font-semibold text-base text-foreground text-right ${onClick && status === 'violation' ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
               onClick={onClick && status === 'violation' ? onClick : undefined}
             >
               {title}
@@ -81,18 +91,28 @@ export default function CriteriaCard({
               </Tooltip>
             )}
           </div>
-          <Icon className={`w-6 h-6 text-${config.color} shrink-0`} />
+          <Icon className={`w-5 h-5 text-${config.color} shrink-0`} />
         </div>
 
-        {/* Metrics */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* Progress Bar */}
+        {status === 'violation' && violationCount > 0 && (
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground text-right">المطلوب</p>
-            <p className="font-mono text-sm font-medium text-right">{required}</p>
+            <Progress value={progressValue} className="h-1.5" />
+            <p className="text-xs text-muted-foreground text-right">
+              {violationCount} مخالفة
+            </p>
           </div>
-          <div className="space-y-1">
+        )}
+
+        {/* Metrics */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-0.5">
+            <p className="text-xs text-muted-foreground text-right">المطلوب</p>
+            <p className="font-mono text-sm font-medium text-right break-words">{required}</p>
+          </div>
+          <div className="space-y-0.5">
             <p className="text-xs text-muted-foreground text-right">الحالي</p>
-            <Badge className={`font-mono ${config.badgeClass}`}>
+            <Badge className={`font-mono ${config.badgeClass} text-xs`}>
               {current}
             </Badge>
           </div>
@@ -101,11 +121,11 @@ export default function CriteriaCard({
         {/* Details */}
         {details && details.length > 0 && (
           <div className="pt-2 border-t border-border/50">
-            <ul className="space-y-1 text-sm text-muted-foreground">
+            <ul className="space-y-1 text-xs text-muted-foreground">
               {details.map((detail, index) => (
                 <li key={index} className="flex items-start gap-2">
-                  <span className="text-primary mt-1">•</span>
-                  <span className="text-right">{detail}</span>
+                  <span className="text-primary mt-0.5">•</span>
+                  <span className="text-right break-words">{detail}</span>
                 </li>
               ))}
             </ul>
