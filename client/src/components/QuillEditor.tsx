@@ -24,7 +24,6 @@ export default function QuillEditor({
   onEditorReady
 }: QuillEditorProps) {
   const quillRef = useRef<ReactQuill>(null);
-  const originalContentRef = useRef<string>('');
 
   useEffect(() => {
     if (quillRef.current) {
@@ -34,57 +33,6 @@ export default function QuillEditor({
       }
     }
   }, [onEditorReady]);
-
-  useEffect(() => {
-    if (quillRef.current) {
-      highlightText();
-    }
-  }, [highlights, highlightedKeyword]);
-
-  const escapeRegex = (str: string) => {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  };
-
-  const highlightText = () => {
-    const editor = quillRef.current?.getEditor();
-    if (!editor) return;
-
-    let content = originalContentRef.current || editor.root.innerHTML;
-    if (!originalContentRef.current) {
-      originalContentRef.current = content;
-    }
-
-    content = content.replace(/<mark[^>]*>(.*?)<\/mark>/g, '$1');
-
-    const colorMap = {
-      green: '#22c55e',
-      orange: '#f97316',
-      red: '#ef4444',
-      purple: '#a855f7',
-      blue: '#3b82f6',
-      yellow: '#eab308'
-    };
-
-    highlights.forEach(h => {
-      const escapedText = escapeRegex(h.text);
-      const regex = new RegExp(`(${escapedText})`, 'gi');
-      content = content.replace(regex, `<mark style="background-color: ${colorMap[h.color]}33; color: inherit;" data-highlight-type="${h.type}">$1</mark>`);
-    });
-
-    if (highlightedKeyword) {
-      const escapedKeyword = escapeRegex(highlightedKeyword);
-      const regex = new RegExp(`(${escapedKeyword})`, 'gi');
-      content = content.replace(regex, `<mark style="background-color: ${colorMap.blue}66; border: 2px solid ${colorMap.blue}; border-radius: 3px; padding: 2px;" data-highlight-type="selected">$1</mark>`);
-    }
-
-    editor.root.innerHTML = content;
-  };
-
-  const handleEditorChange = (newValue: string) => {
-    const cleanedValue = newValue.replace(/<mark[^>]*>(.*?)<\/mark>/g, '$1');
-    originalContentRef.current = cleanedValue;
-    onChange(newValue);
-  };
 
   const modules = useMemo(() => ({
     toolbar: [
@@ -106,6 +54,46 @@ export default function QuillEditor({
     'link', 'code-block'
   ];
 
+  const colorMap = {
+    green: '#22c55e',
+    orange: '#f97316',
+    red: '#ef4444',
+    purple: '#a855f7',
+    blue: '#3b82f6',
+    yellow: '#eab308'
+  };
+
+  const getHighlightedValue = () => {
+    if (!value) return value;
+    if (highlights.length === 0 && !highlightedKeyword) return value;
+
+    let highlightedContent = value;
+
+    const escapeRegex = (str: string) => {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    };
+
+    highlights.forEach(h => {
+      const escapedText = escapeRegex(h.text);
+      const regex = new RegExp(`(${escapedText})`, 'gi');
+      highlightedContent = highlightedContent.replace(
+        regex, 
+        `<mark style="background-color: ${colorMap[h.color]}33; color: inherit; border-radius: 2px; padding: 1px 2px;" data-highlight-type="${h.type}">$1</mark>`
+      );
+    });
+
+    if (highlightedKeyword) {
+      const escapedKeyword = escapeRegex(highlightedKeyword);
+      const regex = new RegExp(`(${escapedKeyword})`, 'gi');
+      highlightedContent = highlightedContent.replace(
+        regex, 
+        `<mark style="background-color: ${colorMap.blue}66; border: 2px solid ${colorMap.blue}; border-radius: 3px; padding: 2px;" data-highlight-type="selected">$1</mark>`
+      );
+    }
+
+    return highlightedContent;
+  };
+
   return (
     <div className="quill-editor-wrapper" dir="rtl">
       <style>{`
@@ -113,11 +101,15 @@ export default function QuillEditor({
           font-family: Tajawal, Cairo, "IBM Plex Sans Arabic", -apple-system, sans-serif;
           font-size: 16px;
           min-height: 500px;
+          max-height: 500px;
+          overflow-y: auto;
           direction: rtl;
           text-align: right;
         }
         .quill-editor-wrapper .ql-editor {
           min-height: 500px;
+          max-height: 500px;
+          overflow-y: auto;
           direction: rtl;
           text-align: right;
         }
@@ -152,8 +144,8 @@ export default function QuillEditor({
       <ReactQuill
         ref={quillRef}
         theme="snow"
-        value={value}
-        onChange={handleEditorChange}
+        value={getHighlightedValue()}
+        onChange={onChange}
         modules={modules}
         formats={formats}
         placeholder="ابدأ الكتابة أو الصق المحتوى هنا..."
