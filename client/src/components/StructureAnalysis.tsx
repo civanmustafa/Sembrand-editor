@@ -6,18 +6,18 @@ import { AlignLeft, Heading, List } from 'lucide-react';
 
 interface StructureAnalysisProps {
   content: string;
-  onViolationClick?: (violations: string[] | null, criteriaTitle: string) => void;
+  onViolationClick?: (violations: string[] | null, criteriaTitle: string, shouldScroll?: boolean, moveCursorOnly?: boolean) => void;
   highlightedCriteria?: string | null;
 }
 
 export default function StructureAnalysis({ content, onViolationClick, highlightedCriteria }: StructureAnalysisProps) {
   
-  const handleCriteriaClick = (criteriaTitle: string, violations: string[], status: 'achieved' | 'close' | 'violation') => {
+  const handleCriteriaClick = (criteriaTitle: string, violations: string[], status: 'achieved' | 'close' | 'violation', shouldScroll: boolean = true, moveCursorOnly: boolean = false) => {
     if (status === 'violation' && onViolationClick) {
       if (highlightedCriteria === criteriaTitle) {
         onViolationClick(null, criteriaTitle);
       } else {
-        onViolationClick(violations, criteriaTitle);
+        onViolationClick(violations, criteriaTitle, shouldScroll, moveCursorOnly);
       }
     }
   };
@@ -89,7 +89,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
   const paragraphStatus = violatingParagraphs.length === 0 ? 'achieved' :
                           violatingParagraphs.length <= 2 ? 'close' : 'violation';
 
-  const analyzeH2Sections = (): { h2Status: 'achieved' | 'violation'; violatingH2Count: number; h2Details: string[] } => {
+  const analyzeH2Sections = (): { h2Status: 'achieved' | 'violation'; violatingH2Count: number; h2Details: string[]; violatingH2s: string[] } => {
     const h2Positions: { heading: string; start: number; end: number }[] = [];
     const h2Matches = Array.from(content.matchAll(/^##\s+(.+)$/gm));
     
@@ -101,6 +101,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
     let violatingH2Count = 0;
     const h2Details: string[] = [];
+    const violatingH2s: string[] = [];
 
     h2Positions.forEach(({ heading, start, end }) => {
       const section = content.substring(start, end);
@@ -116,17 +117,19 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
       if (sectionWords >= 300 && h3Count !== requiredH3) {
         violatingH2Count++;
         h2Details.push(`${sectionWords} كلمة - ${h3Count} عناوين H3`);
+        violatingH2s.push(`## ${heading}`);
       }
     });
 
     const h2Status: 'achieved' | 'violation' = violatingH2Count === 0 && h2Positions.length > 0 ? 'achieved' : 'violation';
-    return { h2Status, violatingH2Count, h2Details };
+    return { h2Status, violatingH2Count, h2Details, violatingH2s };
   };
 
-  const { h2Status, violatingH2Count, h2Details } = analyzeH2Sections();
+  const { h2Status, violatingH2Count, h2Details, violatingH2s } = analyzeH2Sections();
 
-  const analyzeH3Sections = (): 'achieved' | 'violation' => {
-    const h3Violations = analysis.headings.h3.filter((_, i) => {
+  const analyzeH3Sections = (): { status: 'achieved' | 'violation'; violatingH3s: string[] } => {
+    const violatingH3s: string[] = [];
+    const h3Violations = analysis.headings.h3.filter((heading, i) => {
       const h3Match = Array.from(content.matchAll(/^###\s+(.+)$/gm))[i];
       if (!h3Match) return false;
       
@@ -147,16 +150,22 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
       const paragraphs = section.split(/\n\n+/).filter(p => p.trim() && !p.trim().startsWith('#')).length;
       const words = section.split(/\s+/).length;
 
-      return paragraphs < 1 || paragraphs > 2 || words < 60 || words > 150;
+      const isViolating = paragraphs < 1 || paragraphs > 2 || words < 60 || words > 150;
+      if (isViolating) {
+        violatingH3s.push(`### ${heading}`);
+      }
+      return isViolating;
     });
 
-    return analysis.headings.h3.length > 0 ? (h3Violations.length === 0 ? 'achieved' : 'violation') : 'achieved';
+    const status = analysis.headings.h3.length > 0 ? (h3Violations.length === 0 ? 'achieved' : 'violation') : 'achieved';
+    return { status, violatingH3s };
   };
 
-  const h3Status = analyzeH3Sections();
+  const { status: h3Status, violatingH3s } = analyzeH3Sections();
 
-  const analyzeH4Sections = (): 'achieved' | 'violation' => {
-    const h4Violations = analysis.headings.h4.filter((_, i) => {
+  const analyzeH4Sections = (): { status: 'achieved' | 'violation'; violatingH4s: string[] } => {
+    const violatingH4s: string[] = [];
+    const h4Violations = analysis.headings.h4.filter((heading, i) => {
       const h4Match = Array.from(content.matchAll(/^####\s+(.+)$/gm))[i];
       if (!h4Match) return false;
       
@@ -168,16 +177,22 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
       const paragraphs = section.split(/\n\n+/).filter(p => p.trim() && !p.trim().startsWith('#')).length;
       const words = section.split(/\s+/).length;
 
-      return paragraphs !== 1 || words < 30 || words > 80;
+      const isViolating = paragraphs !== 1 || words < 30 || words > 80;
+      if (isViolating) {
+        violatingH4s.push(`#### ${heading}`);
+      }
+      return isViolating;
     });
 
-    return analysis.headings.h4.length > 0 ? (h4Violations.length === 0 ? 'achieved' : 'violation') : 'achieved';
+    const status = analysis.headings.h4.length > 0 ? (h4Violations.length === 0 ? 'achieved' : 'violation') : 'achieved';
+    return { status, violatingH4s };
   };
 
-  const h4Status = analyzeH4Sections();
+  const { status: h4Status, violatingH4s } = analyzeH4Sections();
 
-  const analyzeH2ToH3Gap = (): 'achieved' | 'violation' => {
+  const analyzeH2ToH3Gap = (): { status: 'achieved' | 'violation'; violatingGaps: string[] } => {
     const violations: number[] = [];
+    const violatingGaps: string[] = [];
     const h2Matches = Array.from(content.matchAll(/^##\s+(.+)$/gm));
     
     h2Matches.forEach((h2Match) => {
@@ -192,14 +207,16 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
         if (paragraphs < 1 || paragraphs > 2 || words < 50 || words > 140) {
           violations.push(paragraphs);
+          violatingGaps.push(section);
         }
       }
     });
 
-    return h2Matches.length > 0 ? (violations.length === 0 ? 'achieved' : 'violation') : 'achieved';
+    const status = h2Matches.length > 0 ? (violations.length === 0 ? 'achieved' : 'violation') : 'achieved';
+    return { status, violatingGaps };
   };
 
-  const h2ToH3Status = analyzeH2ToH3Gap();
+  const { status: h2ToH3Status, violatingGaps } = analyzeH2ToH3Gap();
 
   const faqKeywords = ['أسئلة', 'الأسئلة', 'سؤال وجواب'];
   const hasFAQSection = analysis.headings.h2.some(h => 
@@ -208,9 +225,10 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
   const faqStatus = hasFAQSection ? 'achieved' : 'violation';
 
   const questionWords = ['ما', 'من', 'متى', 'أين', 'كيف', 'لماذا', 'هل', 'أليس', 'ألا', 'أم'];
-  const interrogativeH2Count = analysis.headings.h2.filter(h => 
-    questionWords.some(qw => h.includes(qw))
-  ).length;
+  const interrogativeH2Count = analysis.headings.h2.filter(h => {
+    const firstWord = h.trim().split(/\s+/)[0];
+    return questionWords.some(qw => firstWord === qw || firstWord.startsWith(qw));
+  }).length;
   const interrogativeH2Status = interrogativeH2Count >= 3 ? 'achieved' : 
                                 interrogativeH2Count >= 1 ? 'close' : 'violation';
 
@@ -236,28 +254,37 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
   const transitionStatus = transitionWordsCount >= 3 ? 'achieved' : 
                           (transitionWordsCount === 2 || transitionWordsCount === 4) ? 'close' : 'violation';
 
-  const repeatedWordsInParagraphs = analysis.paragraphs.filter(p => {
+  const paragraphsWithRepeatedWords = analysis.paragraphs.filter(p => {
     const words = p.toLowerCase().split(/\s+/);
     const wordCounts = new Map<string, number>();
     words.forEach(w => wordCounts.set(w, (wordCounts.get(w) || 0) + 1));
     return Array.from(wordCounts.values()).some(count => count > 1);
-  }).length;
+  });
+  
+  const repeatedWordsInParagraphs = paragraphsWithRepeatedWords.length;
 
   const repeatedParaStatus = repeatedWordsInParagraphs <= 3 ? 'achieved' : 
                             (repeatedWordsInParagraphs <= 5) ? 'close' : 'violation';
 
-  const headingsWithRepeatedWords = [...analysis.headings.h2, ...analysis.headings.h3, ...analysis.headings.h4]
+  const headingsWithRepeatedWordsArray = [...analysis.headings.h2.map(h => `## ${h}`), 
+                                          ...analysis.headings.h3.map(h => `### ${h}`), 
+                                          ...analysis.headings.h4.map(h => `#### ${h}`)]
     .filter(h => {
-      const words = h.toLowerCase().split(/\s+/);
+      const headingText = h.replace(/^#+\s+/, '');
+      const words = headingText.toLowerCase().split(/\s+/);
       const wordCounts = new Map<string, number>();
       words.forEach(w => wordCounts.set(w, (wordCounts.get(w) || 0) + 1));
       return Array.from(wordCounts.values()).some(count => count > 1);
-    }).length;
+    });
+  
+  const headingsWithRepeatedWords = headingsWithRepeatedWordsArray.length;
 
   const repeatedHeadingStatus = headingsWithRepeatedWords === 0 ? 'achieved' : 'violation';
 
   const paragraphsWithoutEndings = analysis.paragraphs.filter(p => {
     const trimmed = p.trim();
+    // استثناء العناوين من الفقرات
+    if (trimmed.startsWith('#')) return false;
     return !trimmed.match(/[.!?؟:]$/);
   });
   
@@ -443,6 +470,8 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         required="تنظيم حسب عدد الكلمات"
         current={violatingH2Count > 0 ? `${violatingH2Count} عنوان مخالف` : 'جميع العناوين متوافقة'}
         details={h2Details.length > 0 ? h2Details : undefined}
+        onClick={() => handleCriteriaClick('عنوان H2', violatingH2s, h2Status)}
+        isHighlighted={highlightedCriteria === 'عنوان H2'}
         violationCount={violatingH2Count}
         totalCount={analysis.headings.h2.length}
       />
@@ -452,7 +481,11 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         tooltipContent="العناوين الفرعية من المستوى الثالث (1-2 فقرة، 60-150 كلمة)"
         status={h3Status}
         required="1-2 فقرة (60-150 كلمة)"
-        current={h3Status === 'achieved' ? 'متوافق' : 'غير متوافق'}
+        current={h3Status === 'achieved' ? 'متوافق' : `${violatingH3s.length} عنوان مخالف`}
+        onClick={() => handleCriteriaClick('عنوان H3', violatingH3s, h3Status)}
+        isHighlighted={highlightedCriteria === 'عنوان H3'}
+        violationCount={violatingH3s.length}
+        totalCount={analysis.headings.h3.length}
       />
 
       <CriteriaCard
@@ -460,7 +493,11 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         tooltipContent="العناوين الفرعية من المستوى الرابع (1 فقرة، 30-80 كلمة)"
         status={h4Status}
         required="1 فقرة (30-80 كلمة)"
-        current={h4Status === 'achieved' ? 'متوافق' : 'غير متوافق'}
+        current={h4Status === 'achieved' ? 'متوافق' : `${violatingH4s.length} عنوان مخالف`}
+        onClick={() => handleCriteriaClick('عنوان H4', violatingH4s, h4Status)}
+        isHighlighted={highlightedCriteria === 'عنوان H4'}
+        violationCount={violatingH4s.length}
+        totalCount={analysis.headings.h4.length}
       />
 
       <CriteriaCard
@@ -468,7 +505,11 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         tooltipContent="مسافة المحتوى بين عنوان H2 والعنوان H3 الذي يليه (1-2 فقرة، 50-140 كلمة)"
         status={h2ToH3Status}
         required="1-2 فقرة (50-140 كلمة)"
-        current={h2ToH3Status === 'achieved' ? 'متوافق' : 'غير متوافق'}
+        current={h2ToH3Status === 'achieved' ? 'متوافق' : `${violatingGaps.length} فجوة مخالفة`}
+        onClick={() => handleCriteriaClick('بين H2-H3', violatingGaps, h2ToH3Status)}
+        isHighlighted={highlightedCriteria === 'بين H2-H3'}
+        violationCount={violatingGaps.length}
+        totalCount={analysis.headings.h2.length}
       />
 
       <CriteriaCard
@@ -530,6 +571,8 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         status={repeatedParaStatus}
         required="أقل من 3"
         current={`${repeatedWordsInParagraphs}`}
+        onClick={() => handleCriteriaClick('كلمات مكررة في نفس الفقرة', paragraphsWithRepeatedWords, repeatedParaStatus)}
+        isHighlighted={highlightedCriteria === 'كلمات مكررة في نفس الفقرة'}
         violationCount={repeatedWordsInParagraphs}
         totalCount={analysis.paragraphs.length}
       />
@@ -540,6 +583,8 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         status={repeatedHeadingStatus}
         required="0"
         current={`${headingsWithRepeatedWords}`}
+        onClick={() => handleCriteriaClick('كلمات مكررة في نفس العنوان', headingsWithRepeatedWordsArray, repeatedHeadingStatus)}
+        isHighlighted={highlightedCriteria === 'كلمات مكررة في نفس العنوان'}
         violationCount={headingsWithRepeatedWords}
         totalCount={analysis.headingsCount}
       />
@@ -580,6 +625,8 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         status={lastH2Status}
         required="وجود كلمة ختامية"
         current={lastH2HasConclusionWord ? conclusionKeywords.find(kw => lastH2.includes(kw)) || 'يوجد' : 'لا يوجد'}
+        onClick={() => lastH2 && handleCriteriaClick('آخر عنوان H2', [`## ${lastH2}`], lastH2Status, true, true)}
+        isHighlighted={highlightedCriteria === 'آخر عنوان H2'}
       />
 
       <CriteriaCard
@@ -588,6 +635,8 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         status={conclusionParaStatus}
         required="1 كلمة ختامية على الأقل"
         current={conclusionParaHasKeyword ? conclusionKeywords.find(kw => conclusionFirstPara.includes(kw)) || 'يوجد' : '0'}
+        onClick={() => conclusionFirstPara && handleCriteriaClick('فقرة الخاتمة', [conclusionFirstPara], conclusionParaStatus, true, true)}
+        isHighlighted={highlightedCriteria === 'فقرة الخاتمة'}
       />
 
       <CriteriaCard

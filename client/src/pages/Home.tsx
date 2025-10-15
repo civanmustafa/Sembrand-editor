@@ -27,7 +27,7 @@ export default function Home() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [isKeywordsHighlighted, setIsKeywordsHighlighted] = useState(false);
 
-  const handleKeywordClick = (keyword: string) => {
+  const handleKeywordClick = (keyword: string, moveCursorOnly: boolean = false) => {
     setHighlightedPhrases(new Set());
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
@@ -35,6 +35,20 @@ export default function Home() {
       setHighlightedKeyword(null);
     } else {
       setHighlightedKeyword(keyword);
+      
+      // تحريك المؤشر إلى أول ظهور للكلمة بدون سكرول إذا كان moveCursorOnly = true
+      if (moveCursorOnly && editor && keyword) {
+        setTimeout(() => {
+          const normalizedContent = content.toLowerCase();
+          const normalizedKeyword = keyword.toLowerCase();
+          const index = normalizedContent.indexOf(normalizedKeyword);
+          
+          if (index !== -1) {
+            // Set cursor position without scrolling
+            editor.setSelection(index, 0);
+          }
+        }, 100);
+      }
     }
   };
 
@@ -91,7 +105,7 @@ export default function Home() {
     }
   }, [content, editor, highlightedPhrases, getColorForPhrase]);
 
-  const handleViolationClick = useCallback((violations: string[] | null, criteriaTitle: string) => {
+  const handleViolationClick = useCallback((violations: string[] | null, criteriaTitle: string, shouldScroll: boolean = true, moveCursorOnly: boolean = false) => {
     setHighlightedKeyword(null);
     setHighlightedPhrases(new Set());
     
@@ -113,12 +127,18 @@ export default function Home() {
           const normalizedViolation = violations[0].toLowerCase();
           const index = normalizedContent.indexOf(normalizedViolation);
           
-          if (index !== -1 && editor.scroll) {
-            const totalLength = content.length;
-            const scrollPercentage = index / totalLength;
-            const editorHeight = editor.scroll.domNode.scrollHeight;
-            const scrollPosition = scrollPercentage * editorHeight;
-            editor.scroll.domNode.scrollTop = scrollPosition;
+          if (index !== -1) {
+            // Set cursor position
+            editor.setSelection(index, 0);
+            
+            // Only scroll if shouldScroll is true and not moveCursorOnly
+            if (shouldScroll && !moveCursorOnly && editor.scroll) {
+              const totalLength = content.length;
+              const scrollPercentage = index / totalLength;
+              const editorHeight = editor.scroll.domNode.scrollHeight;
+              const scrollPosition = scrollPercentage * editorHeight;
+              editor.scroll.domNode.scrollTop = scrollPosition;
+            }
           }
         }, 100);
       }

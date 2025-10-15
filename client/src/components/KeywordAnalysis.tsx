@@ -13,7 +13,7 @@ interface KeywordAnalysisProps {
   subKeyword3: string;
   subKeyword4: string;
   companyName: string;
-  onKeywordClick: (keyword: string) => void;
+  onKeywordClick: (keyword: string, moveCursorOnly?: boolean) => void;
   highlightedKeyword: string | null;
   onHighlightAllKeywords?: () => void;
   onClearAllHighlights?: () => void;
@@ -157,12 +157,14 @@ export default function KeywordAnalysis({
     analysis,
     checkPrimary = false,
     checkSub = false,
+    isCompany = false,
   }: {
     title: string;
     keyword: string;
     analysis: AnalysisResult;
     checkPrimary?: boolean;
     checkSub?: boolean;
+    isCompany?: boolean;
   }) => {
     if (!keyword) return null;
 
@@ -179,7 +181,7 @@ export default function KeywordAnalysis({
                 size="icon"
                 variant="ghost"
                 className="h-7 w-7"
-                onClick={() => onKeywordClick(keyword)}
+                onClick={() => onKeywordClick(keyword, isCompany)}
                 data-testid={`button-highlight-${keyword}`}
               >
                 <Highlighter className="w-3 h-3" />
@@ -325,6 +327,7 @@ export default function KeywordAnalysis({
         title="اسم الشركة"
         keyword={companyName}
         analysis={companyAnalysis}
+        isCompany={true}
       />
     </div>
   );
