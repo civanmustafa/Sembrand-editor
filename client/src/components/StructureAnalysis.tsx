@@ -295,6 +295,31 @@ export default function StructureAnalysis({ content }: StructureAnalysisProps) {
   const conclusionWordsStatus = (conclusionWords >= 150 && conclusionWords <= 300) ? 'achieved' :
                                 (conclusionWords >= 100 && conclusionWords <= 350) ? 'close' : 'violation';
 
+  // Check for bullet lists in conclusion section
+  const checkConclusionBulletPoints = (): { status: 'achieved' | 'violation'; listType: string } => {
+    if (!conclusionSection.trim()) {
+      return { status: 'violation', listType: '0' };
+    }
+
+    // Check for ordered list items at the start of lines (1., 2., etc.)
+    const orderedListPattern = /^\s*\d+\.\s+/m;
+    const hasOrderedList = orderedListPattern.test(conclusionSection);
+    
+    // Check for bullet list items at the start of lines (•, -, *)
+    const bulletListPattern = /^\s*[•\-*]\s+/m;
+    const hasBulletList = bulletListPattern.test(conclusionSection);
+    
+    if (hasOrderedList) {
+      return { status: 'achieved', listType: 'قائمة مرتبة' };
+    } else if (hasBulletList) {
+      return { status: 'achieved', listType: 'قائمة نقطية' };
+    }
+    
+    return { status: 'violation', listType: '0' };
+  };
+
+  const { status: bulletPointsStatus, listType: bulletPointsType } = checkConclusionBulletPoints();
+
   return (
     <div className="space-y-4">
       <div className="mb-6">
@@ -465,6 +490,14 @@ export default function StructureAnalysis({ content }: StructureAnalysisProps) {
         status={conclusionWordsStatus}
         required="150-300"
         current={`${conclusionWords}`}
+      />
+
+      <CriteriaCard
+        title="التعداد الآلي"
+        description="وجود قوائم منظمة في الخاتمة أي بعد آخر عنوان H2 في المحتوى"
+        status={bulletPointsStatus}
+        required="قائمة واحدة على الأقل"
+        current={bulletPointsType}
       />
     </div>
   );
