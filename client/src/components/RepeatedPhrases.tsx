@@ -210,7 +210,14 @@ export default function RepeatedPhrases({
     const isOpen = openSections.has(sectionId);
     const highlightedCount = phrases.filter(p => highlightedPhrases.has(p.phrase)).length;
     const allHighlighted = phrases.length > 0 && highlightedCount === phrases.length;
-    const progressValue = (highlightedCount / phrases.length) * 100;
+    
+    // Calculate total repetitions in category
+    const totalRepetitions = phrases.reduce((sum, p) => sum + (p.count - 1), 0);
+    const highlightedRepetitions = phrases
+      .filter(p => highlightedPhrases.has(p.phrase))
+      .reduce((sum, p) => sum + (p.count - 1), 0);
+    
+    const progressValue = totalRepetitions > 0 ? (highlightedRepetitions / totalRepetitions) * 100 : 0;
 
     return (
       <Collapsible open={isOpen} onOpenChange={() => toggleSection(sectionId)}>
@@ -236,7 +243,7 @@ export default function RepeatedPhrases({
             <div className="mt-2 space-y-1">
               <Progress value={progressValue} className="h-1.5" />
               <p className="text-xs text-muted-foreground text-right">
-                {highlightedCount} من {phrases.length} مميزة
+                {highlightedRepetitions} من {totalRepetitions} تكرار مميز
               </p>
             </div>
           </CardHeader>
