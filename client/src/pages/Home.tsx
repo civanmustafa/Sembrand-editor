@@ -203,10 +203,10 @@ export default function Home() {
   const handleHighlightAllPhrases = useCallback(() => {
     if (!content.trim()) return;
 
-    const words = content
-      .toLowerCase()
+    const words = normalizeArabicText(content)
       .replace(/[^\u0600-\u06FF\s]/g, ' ')
-      .split(/\s+/)
+      .replace(/\s+/g, ' ')
+      .split(' ')
       .filter(w => w.length > 0);
 
     const extractPhrases = (n: number): Array<{phrase: string, count: number}> => {

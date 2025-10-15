@@ -14,11 +14,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
   
   const handleCriteriaClick = (criteriaTitle: string, violations: string[], status: 'achieved' | 'close' | 'violation', shouldScroll: boolean = true, moveCursorOnly: boolean = false) => {
     if (status === 'violation' && onViolationClick) {
-      if (highlightedCriteria === criteriaTitle) {
-        onViolationClick(null, criteriaTitle);
-      } else {
-        onViolationClick(violations, criteriaTitle, shouldScroll, moveCursorOnly);
-      }
+      onViolationClick(violations, criteriaTitle, shouldScroll, moveCursorOnly);
     }
   };
   const analysis = useMemo(() => {

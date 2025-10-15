@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Copy, Check, Highlighter, ChevronDown, ChevronUp, FileText, Repeat, Hash, ListOrdered } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
+import { normalizeArabicText } from '@/lib/arabicUtils';
 
 interface RepeatedPhrasesProps {
   content: string;
@@ -80,10 +81,10 @@ export default function RepeatedPhrases({
       };
     }
 
-    const words = content
-      .toLowerCase()
+    const words = normalizeArabicText(content)
       .replace(/[^\u0600-\u06FF\s]/g, ' ')
-      .split(/\s+/)
+      .replace(/\s+/g, ' ')
+      .split(' ')
       .filter(w => w.length > 0);
 
     const uniqueWordsSet = new Set(words);
