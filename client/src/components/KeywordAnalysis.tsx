@@ -174,27 +174,34 @@ export default function KeywordAnalysis({
         <CardHeader className="pb-3 space-y-0">
           <div className="flex items-center justify-between gap-2">
             <CardTitle className="text-sm font-medium">{title}</CardTitle>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7 shrink-0"
-              onClick={() => handleCopy(keyword)}
-              data-testid={`button-copy-${keyword}`}
-            >
-              {copiedKeyword === keyword ? (
-                <Check className="w-3 h-3" />
-              ) : (
-                <Copy className="w-3 h-3" />
-              )}
-            </Button>
+            <div className="flex items-center gap-1 shrink-0">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7"
+                onClick={() => onKeywordClick(keyword)}
+                data-testid={`button-highlight-${keyword}`}
+              >
+                <Highlighter className="w-3 h-3" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7"
+                onClick={() => handleCopy(keyword)}
+                data-testid={`button-copy-${keyword}`}
+              >
+                {copiedKeyword === keyword ? (
+                  <Check className="w-3 h-3" />
+                ) : (
+                  <Copy className="w-3 h-3" />
+                )}
+              </Button>
+            </div>
           </div>
-          <button
-            onClick={() => onKeywordClick(keyword)}
-            className="text-right text-sm text-primary hover:underline truncate block w-full"
-            data-testid={`button-highlight-${keyword}`}
-          >
+          <div className="text-right text-sm text-primary truncate block w-full">
             {keyword}
-          </button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {checkPrimary && (

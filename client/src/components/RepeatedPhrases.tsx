@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckSquare, Square } from 'lucide-react';
+import { Copy, Check } from 'lucide-react';
 
 interface RepeatedPhrasesProps {
   content: string;
@@ -38,6 +38,7 @@ export default function RepeatedPhrases({
   highlightedPhrase,
 }: RepeatedPhrasesProps) {
   const [selectedPhrases, setSelectedPhrases] = useState<Set<string>>(new Set());
+  const [copiedPhrase, setCopiedPhrase] = useState<string | null>(null);
 
   const analysis: PhrasesAnalysis = useMemo(() => {
     if (!content.trim()) {
@@ -124,34 +125,11 @@ export default function RepeatedPhrases({
     };
   }, [content, selectedPhrases]);
 
-  const togglePhrase = (phrase: string) => {
-    const newSelected = new Set(selectedPhrases);
-    if (newSelected.has(phrase)) {
-      newSelected.delete(phrase);
-      if (highlightedPhrase === phrase) {
-        onPhraseClick(null);
-      }
-    } else {
-      newSelected.add(phrase);
-    }
-    setSelectedPhrases(newSelected);
-  };
-
-  const selectAllInGroup = (phrases: PhraseData[]) => {
-    const newSelected = new Set(selectedPhrases);
-    phrases.forEach(p => newSelected.add(p.phrase));
-    setSelectedPhrases(newSelected);
-  };
-
-  const clearSelectionInGroup = (phrases: PhraseData[]) => {
-    const newSelected = new Set(selectedPhrases);
-    phrases.forEach(p => {
-      newSelected.delete(p.phrase);
-      if (highlightedPhrase === p.phrase) {
-        onPhraseClick(null);
-      }
-    });
-    setSelectedPhrases(newSelected);
+  const handleCopy = async (phrase: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    await navigator.clipboard.writeText(phrase);
+    setCopiedPhrase(phrase);
+    setTimeout(() => setCopiedPhrase(null), 2000);
   };
 
   const PhraseGroup = ({
@@ -168,33 +146,10 @@ export default function RepeatedPhrases({
     return (
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between gap-2">
-            <CardTitle className="text-sm font-medium">{title}</CardTitle>
-            <div className="flex gap-1">
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 text-xs"
-                onClick={() => selectAllInGroup(phrases)}
-                data-testid={`button-select-all-${testId}`}
-              >
-                تحديد الكل
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 text-xs"
-                onClick={() => clearSelectionInGroup(phrases)}
-                data-testid={`button-clear-${testId}`}
-              >
-                مسح التحديد
-              </Button>
-            </div>
-          </div>
+          <CardTitle className="text-sm font-medium">{title}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {phrases.map((phraseData, idx) => {
-            const isSelected = selectedPhrases.has(phraseData.phrase);
             const isHighlighted = highlightedPhrase === phraseData.phrase;
 
             return (
@@ -212,23 +167,25 @@ export default function RepeatedPhrases({
                   )
                 }
               >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    togglePhrase(phraseData.phrase);
-                  }}
-                  className="flex items-center gap-2 flex-1 text-right"
-                >
-                  {isSelected ? (
-                    <CheckSquare className="w-4 h-4 text-primary shrink-0" />
-                  ) : (
-                    <Square className="w-4 h-4 text-muted-foreground shrink-0" />
-                  )}
-                  <span className="text-sm truncate">{phraseData.phrase}</span>
-                </button>
-                <Badge variant="secondary" className="shrink-0">
-                  {phraseData.count}×
-                </Badge>
+                <span className="text-sm flex-1 text-right">{phraseData.phrase}</span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge variant="secondary">
+                    {phraseData.count}×
+                  </Badge>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7"
+                    onClick={(e) => handleCopy(phraseData.phrase, e)}
+                    data-testid={`button-copy-phrase-${testId}-${idx}`}
+                  >
+                    {copiedPhrase === phraseData.phrase ? (
+                      <Check className="w-3 h-3" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </Button>
+                </div>
               </div>
             );
           })}
@@ -272,29 +229,9 @@ export default function RepeatedPhrases({
       </Card>
 
       <PhraseGroup
-        title="الجمل الثنائية"
-        phrases={analysis.twoWord}
-        testId="two-word"
-      />
-      <PhraseGroup
-        title="الجمل الثلاثية"
-        phrases={analysis.threeWord}
-        testId="three-word"
-      />
-      <PhraseGroup
-        title="الجمل الرباعية"
-        phrases={analysis.fourWord}
-        testId="four-word"
-      />
-      <PhraseGroup
-        title="الجمل الخماسية"
-        phrases={analysis.fiveWord}
-        testId="five-word"
-      />
-      <PhraseGroup
-        title="الجمل السداسية"
-        phrases={analysis.sixWord}
-        testId="six-word"
+        title="الجمل الثمانية"
+        phrases={analysis.eightWord}
+        testId="eight-word"
       />
       <PhraseGroup
         title="الجمل السباعية"
@@ -302,9 +239,29 @@ export default function RepeatedPhrases({
         testId="seven-word"
       />
       <PhraseGroup
-        title="الجمل الثمانية"
-        phrases={analysis.eightWord}
-        testId="eight-word"
+        title="الجمل السداسية"
+        phrases={analysis.sixWord}
+        testId="six-word"
+      />
+      <PhraseGroup
+        title="الجمل الخماسية"
+        phrases={analysis.fiveWord}
+        testId="five-word"
+      />
+      <PhraseGroup
+        title="الجمل الرباعية"
+        phrases={analysis.fourWord}
+        testId="four-word"
+      />
+      <PhraseGroup
+        title="الجمل الثلاثية"
+        phrases={analysis.threeWord}
+        testId="three-word"
+      />
+      <PhraseGroup
+        title="الجمل الثنائية"
+        phrases={analysis.twoWord}
+        testId="two-word"
       />
 
       {analysis.stats.repeatedPhrasesCount === 0 && content.trim() && (
