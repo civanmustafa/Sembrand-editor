@@ -1,4 +1,4 @@
-import { useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect, useMemo, useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ export default function QuillEditor({
   onClearHighlights
 }: QuillEditorProps) {
   const quillRef = useRef<ReactQuill>(null);
+  const [selectionStats, setSelectionStats] = useState({ words: 0, chars: 0 });
 
   useEffect(() => {
     if (quillRef.current) {
@@ -35,6 +36,18 @@ export default function QuillEditor({
       if (onEditorReady) {
         onEditorReady(editor);
       }
+
+      // Listen for text selection changes
+      editor.on('selection-change', (range: any) => {
+        if (range && range.length > 0) {
+          const selectedText = editor.getText(range.index, range.length);
+          const words = selectedText.trim().split(/\s+/).filter(w => w.length > 0).length;
+          const chars = selectedText.length;
+          setSelectionStats({ words, chars });
+        } else {
+          setSelectionStats({ words: 0, chars: 0 });
+        }
+      });
     }
   }, [onEditorReady]);
 
@@ -321,6 +334,17 @@ export default function QuillEditor({
             <button className="ql-clean" />
           </span>
           <div className="custom-actions">
+            {selectionStats.words > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-md border border-primary/20">
+                <span className="text-xs font-medium text-primary" data-testid="selection-word-count">
+                  {selectionStats.words} كلمة
+                </span>
+                <span className="text-xs text-muted-foreground">•</span>
+                <span className="text-xs font-medium text-primary" data-testid="selection-char-count">
+                  {selectionStats.chars} حرف
+                </span>
+              </div>
+            )}
             {onClearHighlights && (
               <Button
                 size="icon"
