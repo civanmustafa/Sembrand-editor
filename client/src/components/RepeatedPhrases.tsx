@@ -200,13 +200,23 @@ export default function RepeatedPhrases({
             return (
               <div
                 key={idx}
-                className={`flex items-center justify-between gap-2 p-2 rounded-md border ${
+                className={`flex items-center justify-between gap-2 p-2 rounded-md border cursor-pointer ${
                   isHighlighted ? 'border-primary bg-primary/10' : 'border-border'
                 }`}
                 data-testid={`phrase-${testId}-${idx}`}
+                onClick={() =>
+                  onPhraseClick(
+                    highlightedPhrase === phraseData.phrase
+                      ? null
+                      : phraseData.phrase
+                  )
+                }
               >
                 <button
-                  onClick={() => togglePhrase(phraseData.phrase)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    togglePhrase(phraseData.phrase);
+                  }}
                   className="flex items-center gap-2 flex-1 text-right"
                 >
                   {isSelected ? (
@@ -216,26 +226,9 @@ export default function RepeatedPhrases({
                   )}
                   <span className="text-sm truncate">{phraseData.phrase}</span>
                 </button>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="shrink-0">
-                    {phraseData.count}×
-                  </Badge>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 text-xs shrink-0"
-                    onClick={() =>
-                      onPhraseClick(
-                        highlightedPhrase === phraseData.phrase
-                          ? null
-                          : phraseData.phrase
-                      )
-                    }
-                    data-testid={`button-highlight-phrase-${testId}-${idx}`}
-                  >
-                    تمييز
-                  </Button>
-                </div>
+                <Badge variant="secondary" className="shrink-0">
+                  {phraseData.count}×
+                </Badge>
               </div>
             );
           })}

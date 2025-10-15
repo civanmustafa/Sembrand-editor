@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useEffect, KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useCallback, useMemo, useEffect, KeyboardEvent as ReactKeyboardEvent, ClipboardEvent as ReactClipboardEvent } from 'react';
 import { createEditor, Descendant, Element as SlateElement, Editor } from 'slate';
 import { Slate, Editable, withReact, useSlateStatic } from 'slate-react';
 import { withHistory } from 'slate-history';
@@ -88,6 +88,12 @@ export default function SlateEditor({
     }
   }, [editor]);
 
+  const handlePaste = useCallback((event: ReactClipboardEvent) => {
+    event.preventDefault();
+    const text = event.clipboardData.getData('text/plain');
+    editor.insertText(text);
+  }, [editor]);
+
   return (
     <Slate editor={editor} initialValue={value} onValueChange={onChange}>
       <div className="space-y-2 h-full flex flex-col">
@@ -119,6 +125,7 @@ export default function SlateEditor({
             placeholder="ابدأ الكتابة أو الصق المحتوى هنا..."
             spellCheck
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             className="min-h-[400px] p-6 bg-muted/30 rounded-md border
                        focus:outline-none focus:ring-2 focus:ring-primary/50
                        text-foreground leading-relaxed"

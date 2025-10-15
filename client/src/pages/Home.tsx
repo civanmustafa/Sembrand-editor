@@ -162,51 +162,23 @@ export default function Home() {
                 onCompanyNameChange={setCompanyName}
               />
               
-              <Tabs defaultValue="structure" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="structure" data-testid="tab-structure">
-                    الهيكل والمحتوى
-                  </TabsTrigger>
-                  <TabsTrigger value="keywords" data-testid="tab-keywords">
-                    الكلمات المفتاحية
-                  </TabsTrigger>
-                  <TabsTrigger value="phrases" data-testid="tab-phrases">
-                    الجمل المكررة
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="structure" className="mt-4">
-                  <StructureAnalysis content={content} />
-                </TabsContent>
-                
-                <TabsContent value="keywords" className="mt-4">
-                  <KeywordAnalysis
-                    content={content}
-                    primaryKeyword={primaryKeyword}
-                    subKeyword1={subKeyword1}
-                    subKeyword2={subKeyword2}
-                    subKeyword3={subKeyword3}
-                    subKeyword4={subKeyword4}
-                    companyName={companyName}
-                    onKeywordClick={handleKeywordClick}
-                    highlightedKeyword={highlightedKeyword}
-                    onHighlightAllKeywords={handleHighlightAllKeywords}
-                    onClearAllHighlights={handleClearAllHighlights}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="phrases" className="mt-4">
-                  <RepeatedPhrases
-                    content={content}
-                    onPhraseClick={setHighlightedKeyword}
-                    highlightedPhrase={highlightedKeyword}
-                  />
-                </TabsContent>
-              </Tabs>
+              <KeywordAnalysis
+                content={content}
+                primaryKeyword={primaryKeyword}
+                subKeyword1={subKeyword1}
+                subKeyword2={subKeyword2}
+                subKeyword3={subKeyword3}
+                subKeyword4={subKeyword4}
+                companyName={companyName}
+                onKeywordClick={handleKeywordClick}
+                highlightedKeyword={highlightedKeyword}
+                onHighlightAllKeywords={handleHighlightAllKeywords}
+                onClearAllHighlights={handleClearAllHighlights}
+              />
             </div>
           </div>
 
-          <div className="lg:col-span-9 flex flex-col min-h-0">
+          <div className="lg:col-span-6 flex flex-col min-h-0">
             <ContentEditor
               content={content}
               onChange={setContent}
@@ -214,6 +186,31 @@ export default function Home() {
               highlights={highlights}
               onEditorReady={setEditor}
             />
+          </div>
+
+          <div className="lg:col-span-3 overflow-auto">
+            <Tabs defaultValue="structure" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="structure" data-testid="tab-structure">
+                  الهيكل والمحتوى
+                </TabsTrigger>
+                <TabsTrigger value="phrases" data-testid="tab-phrases">
+                  الجمل المكررة
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="structure" className="mt-4">
+                <StructureAnalysis content={content} />
+              </TabsContent>
+              
+              <TabsContent value="phrases" className="mt-4">
+                <RepeatedPhrases
+                  content={content}
+                  onPhraseClick={setHighlightedKeyword}
+                  highlightedPhrase={highlightedKeyword}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </main>
