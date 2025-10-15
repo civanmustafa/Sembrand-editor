@@ -1,5 +1,7 @@
-import TinyEditor, { HighlightConfig } from './TinyEditor';
+import { useMemo, useCallback } from 'react';
+import SlateEditor, { HighlightConfig } from './SlateEditor';
 import { Card } from '@/components/ui/card';
+import { Descendant } from 'slate';
 
 interface ContentEditorProps {
   content: string;
@@ -9,97 +11,134 @@ interface ContentEditorProps {
   onEditorReady?: (editor: any) => void;
 }
 
-const textToHtml = (text: string): string => {
-  if (!text) return '';
+const textToSlateValue = (text: string): Descendant[] => {
+  if (!text || text.trim() === '') {
+    return [{ type: 'paragraph', children: [{ text: '' }] } as any];
+  }
   
-  let html = text;
+  const lines = text.split('\n');
+  const nodes: Descendant[] = [];
+  let i = 0;
   
-  // Convert headings (must be done before paragraph conversion)
-  html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
-  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-  
-  // Convert ordered lists
-  const orderedListRegex = /(?:^|\n)((?:\d+\..+(?:\n|$))+)/g;
-  html = html.replace(orderedListRegex, (match, listContent) => {
-    const items = listContent.trim().split('\n').map((line: string) => {
-      const content = line.replace(/^\d+\.\s*/, '');
-      return `<li>${content}</li>`;
-    }).join('');
-    return `<ol>${items}</ol>`;
-  });
-  
-  // Convert unordered lists
-  const unorderedListRegex = /(?:^|\n)((?:[•\-*]\s+.+(?:\n|$))+)/g;
-  html = html.replace(unorderedListRegex, (match, listContent) => {
-    const items = listContent.trim().split('\n').map((line: string) => {
-      const content = line.replace(/^[•\-*]\s*/, '');
-      return `<li>${content}</li>`;
-    }).join('');
-    return `<ul>${items}</ul>`;
-  });
-  
-  // Convert paragraphs (lines not already converted to headings or lists)
-  const lines = html.split('\n');
-  const converted: string[] = [];
-  
-  for (let i = 0; i < lines.length; i++) {
+  while (i < lines.length) {
     const line = lines[i].trim();
     
-    // Skip if already HTML
-    if (line.startsWith('<') || line === '') {
-      converted.push(line);
+    if (line === '') {
+      i++;
       continue;
     }
     
-    // Wrap in paragraph
-    converted.push(`<p>${line}</p>`);
+    if (line.startsWith('# ')) {
+      nodes.push({
+        type: 'heading-one',
+        children: [{ text: line.substring(2) }]
+      } as any);
+      i++;
+    } else if (line.startsWith('## ')) {
+      nodes.push({
+        type: 'heading-two',
+        children: [{ text: line.substring(3) }]
+      } as any);
+      i++;
+    } else if (line.startsWith('### ')) {
+      nodes.push({
+        type: 'heading-three',
+        children: [{ text: line.substring(4) }]
+      } as any);
+      i++;
+    } else if (line.startsWith('#### ')) {
+      nodes.push({
+        type: 'heading-four',
+        children: [{ text: line.substring(5) }]
+      } as any);
+      i++;
+    } else if (/^\d+\.\s/.test(line)) {
+      const listItems: any[] = [];
+      while (i < lines.length && /^\d+\.\s/.test(lines[i].trim())) {
+        const itemText = lines[i].trim().replace(/^\d+\.\s*/, '');
+        listItems.push({
+          type: 'list-item',
+          children: [{ text: itemText }]
+        });
+        i++;
+      }
+      nodes.push({
+        type: 'numbered-list',
+        children: listItems
+      } as any);
+    } else if (/^[•\-*]\s/.test(line)) {
+      const listItems: any[] = [];
+      while (i < lines.length && /^[•\-*]\s/.test(lines[i].trim())) {
+        const itemText = lines[i].trim().replace(/^[•\-*]\s*/, '');
+        listItems.push({
+          type: 'list-item',
+          children: [{ text: itemText }]
+        });
+        i++;
+      }
+      nodes.push({
+        type: 'bulleted-list',
+        children: listItems
+      } as any);
+    } else {
+      nodes.push({
+        type: 'paragraph',
+        children: [{ text: line }]
+      } as any);
+      i++;
+    }
   }
   
-  html = converted.join('');
-  
-  return html;
+  return nodes.length > 0 ? nodes : [{ type: 'paragraph', children: [{ text: '' }] } as any];
 };
 
-const htmlToText = (html: string): string => {
-  if (!html) return '';
+const slateValueToText = (value: Descendant[]): string => {
+  const lines: string[] = [];
   
-  let text = html;
+  const processNode = (node: any) => {
+    if ('text' in node) {
+      return node.text;
+    }
+    
+    const childrenText = node.children?.map(processNode).join('') || '';
+    
+    switch (node.type) {
+      case 'heading-one':
+        return `# ${childrenText}`;
+      case 'heading-two':
+        return `## ${childrenText}`;
+      case 'heading-three':
+        return `### ${childrenText}`;
+      case 'heading-four':
+        return `#### ${childrenText}`;
+      case 'numbered-list':
+        return node.children?.map((child: any, idx: number) => {
+          const text = child.children?.map(processNode).join('') || '';
+          return `${idx + 1}. ${text}`;
+        }).join('\n') || '';
+      case 'bulleted-list':
+        return node.children?.map((child: any) => {
+          const text = child.children?.map(processNode).join('') || '';
+          return `• ${text}`;
+        }).join('\n') || '';
+      case 'block-quote':
+        return childrenText;
+      case 'list-item':
+        return childrenText;
+      case 'paragraph':
+      default:
+        return childrenText;
+    }
+  };
   
-  // Convert HTML headings to markdown-style
-  text = text.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n');
-  text = text.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n');
-  text = text.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n');
-  text = text.replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n\n');
-  
-  // Convert ordered lists - preserve numbering
-  text = text.replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, (match, content) => {
-    let counter = 1;
-    const items = content.replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, (_m: string, item: string) => {
-      return `${counter++}. ${item.trim()}\n`;
-    });
-    return items + '\n';
+  value.forEach(node => {
+    const text = processNode(node);
+    if (text) {
+      lines.push(text);
+    }
   });
   
-  // Convert unordered lists - use bullet points
-  text = text.replace(/<ul[^>]*>([\s\S]*?)<\/ul>/gi, (match, content) => {
-    const items = content.replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, (_m: string, item: string) => {
-      return `• ${item.trim()}\n`;
-    });
-    return items + '\n';
-  });
-  
-  // Convert paragraphs
-  text = text.replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n');
-  
-  // Remove other HTML tags
-  text = text.replace(/<[^>]+>/g, '');
-  
-  // Clean up extra whitespace
-  text = text.replace(/\n{3,}/g, '\n\n').trim();
-  
-  return text;
+  return lines.join('\n');
 };
 
 export default function ContentEditor({ 
@@ -109,20 +148,18 @@ export default function ContentEditor({
   highlights = [],
   onEditorReady
 }: ContentEditorProps) {
-  // Convert plaintext/markdown to HTML for TinyMCE
-  const htmlContent = textToHtml(content);
+  const slateValue = useMemo(() => textToSlateValue(content), [content]);
   
-  const handleChange = (newHtml: string) => {
-    // Convert HTML back to plaintext for analysis
-    const plainText = htmlToText(newHtml);
+  const handleChange = useCallback((newValue: Descendant[]) => {
+    const plainText = slateValueToText(newValue);
     onChange(plainText);
-  };
+  }, [onChange]);
 
   return (
     <Card className="h-full flex flex-col">
       <div className="flex-1 overflow-hidden p-4">
-        <TinyEditor
-          value={htmlContent}
+        <SlateEditor
+          value={slateValue}
           onChange={handleChange}
           highlightedKeyword={highlightedKeyword}
           highlights={highlights}
