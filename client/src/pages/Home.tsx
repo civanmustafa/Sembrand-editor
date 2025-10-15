@@ -20,7 +20,7 @@ export default function Home() {
   const [subKeyword4, setSubKeyword4] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [highlightedKeyword, setHighlightedKeyword] = useState<string | null>(null);
-  const [highlightedPhrase, setHighlightedPhrase] = useState<string | null>(null);
+  const [highlightedPhrases, setHighlightedPhrases] = useState<Set<string>>(new Set());
   const [highlightedViolation, setHighlightedViolation] = useState<string | null>(null);
   const [highlightedCriteria, setHighlightedCriteria] = useState<string | null>(null);
   const [highlights, setHighlights] = useState<HighlightConfig[]>([]);
@@ -29,7 +29,7 @@ export default function Home() {
   const [isKeywordsHighlighted, setIsKeywordsHighlighted] = useState(false);
 
   const handleKeywordClick = (keyword: string) => {
-    setHighlightedPhrase(null);
+    setHighlightedPhrases(new Set());
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
     if (highlightedKeyword === keyword) {
@@ -39,9 +39,39 @@ export default function Home() {
     }
   };
 
+  const getColorForPhrase = useCallback((phrase: string): string => {
+    let hash = 0;
+    for (let i = 0; i < phrase.length; i++) {
+      hash = phrase.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % PHRASE_COLORS.length;
+    return PHRASE_COLORS[index].highlight;
+  }, []);
+
   const handlePhraseClick = useCallback((phrase: string | null) => {
+    if (!phrase) {
+      setHighlightedPhrases(new Set());
+      setHighlights([]);
+      return;
+    }
+
+    const newPhrases = new Set(highlightedPhrases);
+    if (newPhrases.has(phrase)) {
+      newPhrases.delete(phrase);
+    } else {
+      newPhrases.add(phrase);
+    }
+    
+    setHighlightedPhrases(newPhrases);
+    
+    const phraseHighlights: HighlightConfig[] = Array.from(newPhrases).map(p => ({
+      text: p,
+      color: getColorForPhrase(p),
+      type: 'phrase' as const
+    }));
+    
+    setHighlights(phraseHighlights);
     setHighlightedKeyword(null);
-    setHighlightedPhrase(phrase);
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
     
@@ -60,11 +90,11 @@ export default function Home() {
         }
       }, 100);
     }
-  }, [content, editor]);
+  }, [content, editor, highlightedPhrases, getColorForPhrase]);
 
   const handleViolationClick = useCallback((violationText: string | null, criteriaTitle: string) => {
     setHighlightedKeyword(null);
-    setHighlightedPhrase(null);
+    setHighlightedPhrases(new Set());
     
     if (violationText) {
       setHighlightedViolation(violationText);
@@ -128,7 +158,7 @@ export default function Home() {
     setHighlights([]);
     setIsKeywordsHighlighted(false);
     setHighlightedKeyword(null);
-    setHighlightedPhrase(null);
+    setHighlightedPhrases(new Set());
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
   }, []);
@@ -155,15 +185,6 @@ export default function Home() {
         .map(([phrase, count]) => ({ phrase, count }));
     };
 
-    const getColorForPhrase = (phrase: string): string => {
-      let hash = 0;
-      for (let i = 0; i < phrase.length; i++) {
-        hash = phrase.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      const index = Math.abs(hash) % PHRASE_COLORS.length;
-      return PHRASE_COLORS[index].highlight;
-    };
-
     const allPhrases = [
       ...extractPhrases(2),
       ...extractPhrases(3),
@@ -182,10 +203,10 @@ export default function Home() {
 
     setHighlights(phraseHighlights);
     setHighlightedKeyword(null);
-    setHighlightedPhrase(null);
+    setHighlightedPhrases(new Set());
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
-  }, [content]);
+  }, [content, getColorForPhrase]);
 
   const handleToggleKeywordsHighlight = useCallback(() => {
     if (isKeywordsHighlighted) {
@@ -311,7 +332,7 @@ export default function Home() {
             <ContentEditor
               content={content}
               onChange={setContent}
-              highlightedKeyword={highlightedKeyword || highlightedPhrase || highlightedViolation}
+              highlightedKeyword={highlightedKeyword || highlightedViolation}
               highlights={highlights}
               onEditorReady={setEditor}
               onClearHighlights={handleClearAllHighlights}
@@ -341,7 +362,7 @@ export default function Home() {
                 <RepeatedPhrases
                   content={content}
                   onPhraseClick={handlePhraseClick}
-                  highlightedPhrase={highlightedPhrase}
+                  highlightedPhrases={highlightedPhrases}
                   onHighlightAll={handleHighlightAllPhrases}
                 />
               </TabsContent>

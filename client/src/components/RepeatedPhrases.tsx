@@ -8,7 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 interface RepeatedPhrasesProps {
   content: string;
   onPhraseClick: (phrase: string | null) => void;
-  highlightedPhrase: string | null;
+  highlightedPhrases: Set<string>;
   onHighlightAll?: () => void;
 }
 
@@ -51,7 +51,7 @@ export const PHRASE_COLORS = [
 export default function RepeatedPhrases({
   content,
   onPhraseClick,
-  highlightedPhrase,
+  highlightedPhrases,
   onHighlightAll,
 }: RepeatedPhrasesProps) {
   const [selectedPhrases, setSelectedPhrases] = useState<Set<string>>(new Set());
@@ -207,7 +207,7 @@ export default function RepeatedPhrases({
           <CollapsibleContent>
             <CardContent className="space-y-2 pt-0">
               {phrases.map((phraseData, idx) => {
-                const isHighlighted = highlightedPhrase === phraseData.phrase;
+                const isHighlighted = highlightedPhrases.has(phraseData.phrase);
                 
                 return (
                   <div
@@ -218,13 +218,7 @@ export default function RepeatedPhrases({
                         : phraseData.color
                     }`}
                     data-testid={`phrase-${testId}-${idx}`}
-                    onClick={() =>
-                      onPhraseClick(
-                        highlightedPhrase === phraseData.phrase
-                          ? null
-                          : phraseData.phrase
-                      )
-                    }
+                    onClick={() => onPhraseClick(phraseData.phrase)}
                   >
                     <div className="flex items-center gap-2 shrink-0">
                       <Badge variant="secondary" data-testid={`badge-count-${testId}-${idx}`}>
