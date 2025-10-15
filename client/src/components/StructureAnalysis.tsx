@@ -85,6 +85,26 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
   const paragraphStatus = violatingParagraphs.length === 0 ? 'achieved' :
                           violatingParagraphs.length <= 2 ? 'close' : 'violation';
 
+  // Sentence length analysis
+  const analyzeSentenceLength = () => {
+    const allSentences = analysis.sentences;
+    const sentenceLengths = allSentences.map(s => s.trim().split(/\s+/).filter(w => w.length > 0).length);
+    const longSentences = sentenceLengths.filter(len => len > 25);
+    const averageLength = sentenceLengths.length > 0 
+      ? Math.round(sentenceLengths.reduce((a, b) => a + b, 0) / sentenceLengths.length)
+      : 0;
+    
+    const longSentenceTexts = allSentences.filter((s, i) => sentenceLengths[i] > 25);
+    
+    const status: 'achieved' | 'close' | 'violation' = 
+      longSentences.length === 0 ? 'achieved' :
+      longSentences.length <= 2 ? 'close' : 'violation';
+    
+    return { status, longSentences: longSentenceTexts, averageLength, violationCount: longSentences.length };
+  };
+  
+  const { status: sentenceLengthStatus, longSentences, averageLength, violationCount: longSentencesCount } = analyzeSentenceLength();
+
   const analyzeH2Sections = (): { h2Status: 'achieved' | 'violation'; violatingH2Count: number; h2Details: string[]; violatingH2s: string[] } => {
     const h2Positions: { heading: string; start: number; end: number }[] = [];
     const h2Matches = Array.from(content.matchAll(/^##\s+(.+)$/gm));
@@ -404,6 +424,21 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         </CardContent>
       </Card>
 
+      <div className="my-6">
+        <CategoryHeader
+          title="معايير الهيكل"
+          emoji="📐"
+          violationCount={
+            (wordCountStatus === 'violation' ? 1 : 0) +
+            (summaryStatus === 'violation' ? 1 : 0) +
+            (secondParaStatus === 'violation' ? 1 : 0) +
+            (paragraphStatus === 'violation' ? 1 : 0) +
+            (sentenceLengthStatus === 'violation' ? 1 : 0)
+          }
+          totalCount={5}
+        />
+      </div>
+
       <CriteriaCard
         title="الكلمات"
         status={wordCountStatus}
@@ -442,6 +477,18 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         isHighlighted={highlightedCriteria === 'طول الفقرات'}
         violationCount={violatingParagraphs.length}
         totalCount={analysis.paragraphs.length}
+      />
+
+      <CriteriaCard
+        title="طول الجمل"
+        tooltipContent="متوسط طول الجمل في المحتوى (25 كلمة كحد أقصى)"
+        status={sentenceLengthStatus}
+        required="أقل من 25 كلمة"
+        current={`متوسط: ${averageLength} كلمة`}
+        onClick={() => handleCriteriaClick('طول الجمل', longSentences, sentenceLengthStatus)}
+        isHighlighted={highlightedCriteria === 'طول الجمل'}
+        violationCount={longSentencesCount}
+        totalCount={analysis.sentences.length}
       />
 
       <div className="my-6">

@@ -367,7 +367,7 @@ export default function QuillEditor({
               <button className="ql-underline" />
               <button className="ql-strike" />
             </span>
-            <div className="custom-actions" style={{ marginRight: 'auto' }}>
+            <div className="custom-actions flex items-center gap-4" style={{ marginRight: 'auto' }}>
               {selectionStats.words > 0 && (
                 <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-md border border-primary/20">
                   <span className="text-xs font-medium text-primary" data-testid="selection-word-count">

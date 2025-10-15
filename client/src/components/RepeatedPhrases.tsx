@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -61,6 +61,7 @@ export default function RepeatedPhrases({
   const [openSections, setOpenSections] = useState<Set<string>>(new Set([
     'eight', 'seven', 'six', 'five', 'four', 'three', 'two'
   ]));
+  const initialRepetitionsRef = useRef<Map<string, number>>(new Map());
 
   const analysis: PhrasesAnalysis = useMemo(() => {
     if (!content.trim()) {
@@ -225,11 +226,17 @@ export default function RepeatedPhrases({
     
     // Calculate total repetitions in category
     const totalRepetitions = phrases.reduce((sum, p) => sum + (p.count - 1), 0);
-    const highlightedRepetitions = phrases
-      .filter(p => highlightedPhrases.has(p.phrase))
-      .reduce((sum, p) => sum + (p.count - 1), 0);
     
-    const progressValue = totalRepetitions > 0 ? (highlightedRepetitions / totalRepetitions) * 100 : 0;
+    // Track initial repetitions for this category
+    if (!initialRepetitionsRef.current.has(sectionId) && totalRepetitions > 0) {
+      initialRepetitionsRef.current.set(sectionId, totalRepetitions);
+    }
+    
+    const initialRepetitions = initialRepetitionsRef.current.get(sectionId) || totalRepetitions;
+    const removedRepetitions = initialRepetitions - totalRepetitions;
+    
+    // Progress fills as repetitions are reduced (removed from content)
+    const progressValue = initialRepetitions > 0 ? (removedRepetitions / initialRepetitions) * 100 : 0;
 
     return (
       <Collapsible open={isOpen} onOpenChange={() => toggleSection(sectionId)}>
@@ -255,7 +262,7 @@ export default function RepeatedPhrases({
             <div className="mt-2 space-y-1">
               <Progress value={progressValue} className="h-1.5" />
               <p className="text-xs text-muted-foreground text-right">
-                {highlightedRepetitions} من {totalRepetitions} تكرار مميز
+                {removedRepetitions} من {initialRepetitions} تكرار محذوف
               </p>
             </div>
           </CardHeader>

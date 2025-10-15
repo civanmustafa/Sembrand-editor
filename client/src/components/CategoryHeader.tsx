@@ -16,7 +16,7 @@ export default function CategoryHeader({ title, emoji, violationCount, totalCoun
   return (
     <Card className="p-4 bg-gradient-to-r from-primary/5 to-accent/5 border-r-4 border-r-primary">
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-end gap-2">
           <h3 className="text-xl font-semibold text-foreground">
             {title}
           </h3>
