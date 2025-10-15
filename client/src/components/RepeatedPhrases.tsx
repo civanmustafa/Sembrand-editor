@@ -227,16 +227,27 @@ export default function RepeatedPhrases({
     // Calculate total repetitions in category
     const totalRepetitions = phrases.reduce((sum, p) => sum + (p.count - 1), 0);
     
-    // Track initial repetitions for this category
+    // Set initial baseline only when first repetitions appear
     if (!initialRepetitionsRef.current.has(sectionId) && totalRepetitions > 0) {
       initialRepetitionsRef.current.set(sectionId, totalRepetitions);
     }
     
+    // Get baseline before any deletion to allow 100% progress display
     const initialRepetitions = initialRepetitionsRef.current.get(sectionId) || totalRepetitions;
-    const removedRepetitions = initialRepetitions - totalRepetitions;
+    const removedRepetitions = Math.max(0, initialRepetitions - totalRepetitions);
     
     // Progress fills as repetitions are reduced (removed from content)
     const progressValue = initialRepetitions > 0 ? (removedRepetitions / initialRepetitions) * 100 : 0;
+    
+    // Clear baseline AFTER calculating progress when all repetitions are removed
+    if (totalRepetitions === 0 && initialRepetitionsRef.current.has(sectionId)) {
+      // Delay deletion to next render to allow 100% display
+      setTimeout(() => {
+        if (phrases.reduce((sum, p) => sum + (p.count - 1), 0) === 0) {
+          initialRepetitionsRef.current.delete(sectionId);
+        }
+      }, 100);
+    }
 
     return (
       <Collapsible open={isOpen} onOpenChange={() => toggleSection(sectionId)}>

@@ -12,6 +12,33 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 15, 2025 - Structure Criteria Category & UI Refinements
+
+**Structure Criteria Category**
+- Created new "معايير الهيكل" (Structure Criteria) category with 5 criteria
+- Moved word count, summary paragraph, second paragraph, and paragraph length to new category
+- Added new "طول الجمل" (Sentence Length) criterion with 25-word maximum average
+- Sentence length detection highlights sentences exceeding 25 words in red
+- Category header shows aggregate violations with progress bar
+
+**UI Compactness Improvements**
+- Redesigned CriteriaCard with same-line "المطلوب/الحالي" (Required/Current) display
+- Abbreviated labels: "المطلوب:" and "الحالي:" for space efficiency
+- Removed tab text labels, showing icons only (FileText and Repeat icons)
+- Increased spacing between Clear Highlights button and word/character count box
+- Category icons positioned directly before titles with minimal gap
+
+**Progress Bar Enhancements**
+- Reversed progress bar fill direction for proper RTL alignment using transform
+- Repeated Phrases progress bars now track reduction in total repetitions
+- Progress starts empty (0%) and fills as repetitions are removed from content
+- Display shows "{removed_repetitions} من {initial_repetitions} تكرار محذوف"
+- Uses useRef to track initial repetition counts per category
+
+**Bug Fixes**
+- Fixed highlight cancellation bug by reordering setState calls in handleViolationClick
+- Ensured setHighlights executes before clearing other states to prevent early returns
+
 ### October 15, 2025 - Enhanced Navigation & Violation Detection
 
 **Smart Cursor Navigation**
