@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import CriteriaCard from './CriteriaCard';
+import CategoryHeader from './CategoryHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlignLeft, Heading, List } from 'lucide-react';
 
@@ -425,8 +426,19 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         totalCount={analysis.paragraphs.length}
       />
 
-      <div className="my-6 border-t border-border pt-4">
-        <h3 className="text-xl font-semibold text-foreground mb-3">📋 معايير العناوين والتسلسل</h3>
+      <div className="my-6">
+        <CategoryHeader
+          title="معايير العناوين والتسلسل"
+          emoji="📋"
+          violationCount={
+            (h2Status === 'violation' ? 1 : 0) +
+            (h3Status === 'violation' ? 1 : 0) +
+            (h4Status === 'violation' ? 1 : 0) +
+            (h2ToH3Status === 'violation' ? 1 : 0) +
+            (faqStatus === 'violation' ? 1 : 0)
+          }
+          totalCount={5}
+        />
       </div>
 
       <CriteriaCard
@@ -472,8 +484,21 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         current={hasFAQSection ? 'يوجد' : 'لا يوجد'}
       />
 
-      <div className="my-6 border-t border-border pt-4">
-        <h3 className="text-xl font-semibold text-foreground mb-3">✍️ معايير الجودة اللغوية والنحوية</h3>
+      <div className="my-6">
+        <CategoryHeader
+          title="معايير الجودة اللغوية والنحوية"
+          emoji="✍️"
+          violationCount={
+            (paragraphEndingStatus === 'violation' ? 1 : 0) +
+            (interrogativeH2Status === 'violation' ? 1 : 0) +
+            (transitionStatus === 'violation' ? 1 : 0) +
+            (repeatedParaStatus === 'violation' ? 1 : 0) +
+            (repeatedHeadingStatus === 'violation' ? 1 : 0) +
+            (ctaStatus === 'violation' ? 1 : 0) +
+            (interactiveStatus === 'violation' ? 1 : 0)
+          }
+          totalCount={7}
+        />
       </div>
 
       <CriteriaCard
@@ -540,8 +565,18 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         current={`${interactiveWordCount} كلمة`}
       />
 
-      <div className="my-6 border-t border-border pt-4">
-        <h3 className="text-xl font-semibold text-foreground mb-3">📝 معايير الخاتمة</h3>
+      <div className="my-6">
+        <CategoryHeader
+          title="معايير الخاتمة"
+          emoji="📝"
+          violationCount={
+            (lastH2Status === 'violation' ? 1 : 0) +
+            (conclusionParaStatus === 'violation' ? 1 : 0) +
+            (conclusionWordsStatus === 'violation' ? 1 : 0) +
+            (bulletPointsStatus === 'violation' ? 1 : 0)
+          }
+          totalCount={4}
+        />
       </div>
 
       <CriteriaCard
