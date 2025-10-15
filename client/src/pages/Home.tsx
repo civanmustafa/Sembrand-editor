@@ -39,12 +39,28 @@ export default function Home() {
     }
   };
 
-  const handlePhraseClick = (phrase: string | null) => {
+  const handlePhraseClick = useCallback((phrase: string | null) => {
     setHighlightedKeyword(null);
     setHighlightedPhrase(phrase);
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
-  };
+    
+    if (phrase && editor) {
+      setTimeout(() => {
+        const normalizedContent = content.toLowerCase();
+        const normalizedPhrase = phrase.toLowerCase();
+        const index = normalizedContent.indexOf(normalizedPhrase);
+        
+        if (index !== -1 && editor.scroll) {
+          const totalLength = content.length;
+          const scrollPercentage = index / totalLength;
+          const editorHeight = editor.scroll.domNode.scrollHeight;
+          const scrollPosition = scrollPercentage * editorHeight;
+          editor.scroll.domNode.scrollTop = scrollPosition;
+        }
+      }, 100);
+    }
+  }, [content, editor]);
 
   const handleViolationClick = useCallback((violationText: string | null, criteriaTitle: string) => {
     setHighlightedKeyword(null);
