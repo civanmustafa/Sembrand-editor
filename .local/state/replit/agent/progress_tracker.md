@@ -38,4 +38,18 @@ All migration items have been successfully completed:
 [x] 20. Restarted workflow successfully - application running on port 5000
 [x] 21. Verified application is fully functional with screenshot confirmation
 
-**Status: ✅ ALL SYSTEMS OPERATIONAL**
+## التحديثات الأخيرة - 15 أكتوبر 2025 (الجلسة الحالية)
+
+[x] 22. إصلاح مشكلة اختفاء التظليل - إزالة value من dependencies في QuillEditor لجعل التظليل ثابتاً
+[x] 23. تحديث منطق البحث عن الجمل المكررة - استخدام regex للمطابقة مع الأحرف الحساسة (ه/ة، ي/ى، أ/إ/آ/ا)
+[x] 24. تعديل تحليل الجمل المكررة - استخدام normalizeArabicText للتجميع وoriginalWords للعرض
+[x] 25. تقليل ارتفاع بطاقات المعايير بنسبة 50% - تقليل padding وأحجام الخطوط
+[x] 26. إضافة دالة normalizeForAnalysis في arabicUtils.ts لتحليل النص بدون استبدال الأحرف
+
+**الملفات المعدلة:**
+- client/src/components/QuillEditor.tsx (تثبيت التظليل + regex للأحرف الحساسة)
+- client/src/components/CriteriaCard.tsx (تقليل الارتفاع والمسافات)
+- client/src/lib/arabicUtils.ts (إضافة normalizeForAnalysis)
+- client/src/components/RepeatedPhrases.tsx (تحسين التحليل والتجميع)
+
+**Status: ✅ ALL FEATURES WORKING CORRECTLY - ARCHITECT REVIEWED**
