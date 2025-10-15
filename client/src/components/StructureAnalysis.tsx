@@ -5,18 +5,18 @@ import { AlignLeft, Heading, List } from 'lucide-react';
 
 interface StructureAnalysisProps {
   content: string;
-  onViolationClick?: (violationText: string | null, criteriaTitle: string) => void;
+  onViolationClick?: (violations: string[] | null, criteriaTitle: string) => void;
   highlightedCriteria?: string | null;
 }
 
 export default function StructureAnalysis({ content, onViolationClick, highlightedCriteria }: StructureAnalysisProps) {
   
-  const handleCriteriaClick = (criteriaTitle: string, violationText: string | null, status: 'achieved' | 'close' | 'violation') => {
+  const handleCriteriaClick = (criteriaTitle: string, violations: string[], status: 'achieved' | 'close' | 'violation') => {
     if (status === 'violation' && onViolationClick) {
       if (highlightedCriteria === criteriaTitle) {
         onViolationClick(null, criteriaTitle);
       } else {
-        onViolationClick(violationText, criteriaTitle);
+        onViolationClick(violations, criteriaTitle);
       }
     }
   };
@@ -255,11 +255,12 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
   const repeatedHeadingStatus = headingsWithRepeatedWords === 0 ? 'achieved' : 'violation';
 
-  const paragraphEndings = analysis.paragraphs.filter(p => {
+  const paragraphsWithoutEndings = analysis.paragraphs.filter(p => {
     const trimmed = p.trim();
     return !trimmed.match(/[.!?؟:]$/);
-  }).length;
-
+  });
+  
+  const paragraphEndings = paragraphsWithoutEndings.length;
   const paragraphEndingStatus = paragraphEndings === 0 ? 'achieved' : 'violation';
 
   const ctaWords = [
@@ -397,7 +398,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         status={summaryStatus}
         required="2-4 جمل (30-60 كلمة)"
         current={`${firstParaSents} جمل، ${firstParaWords} كلمة`}
-        onClick={() => handleCriteriaClick('الفقرة التلخيصية', firstPara, summaryStatus)}
+        onClick={() => handleCriteriaClick('الفقرة التلخيصية', [firstPara], summaryStatus)}
         isHighlighted={highlightedCriteria === 'الفقرة التلخيصية'}
         tooltipContent="الفقرة الأولى في المحتوى التي تلخص الموضوع (2-4 جمل، 30-60 كلمة)"
       />
@@ -408,7 +409,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         status={secondParaStatus}
         required="2-3 جمل (30-60 كلمة)"
         current={`${secondParaSents} جمل، ${secondParaWords} كلمة`}
-        onClick={() => handleCriteriaClick('الفقرة الثانية', secondPara, secondParaStatus)}
+        onClick={() => handleCriteriaClick('الفقرة الثانية', [secondPara], secondParaStatus)}
         isHighlighted={highlightedCriteria === 'الفقرة الثانية'}
       />
 
@@ -418,7 +419,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         status={paragraphStatus}
         required="3-5 جمل (50-70 كلمة)"
         current={`${violatingParagraphs.length} فقرة مخالفة`}
-        onClick={() => handleCriteriaClick('طول الفقرات', violatingParagraphs[0] || null, paragraphStatus)}
+        onClick={() => handleCriteriaClick('طول الفقرات', violatingParagraphs, paragraphStatus)}
         isHighlighted={highlightedCriteria === 'طول الفقرات'}
         violationCount={violatingParagraphs.length}
         totalCount={analysis.paragraphs.length}
@@ -481,6 +482,10 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         status={paragraphEndingStatus}
         required="جميع الفقرات تنتهي بعلامة ترقيم"
         current={paragraphEndings === 0 ? 'جميع الفقرات صحيحة' : `${paragraphEndings} فقرة بدون علامة ترقيم`}
+        onClick={() => handleCriteriaClick('نهايات الفقرات', paragraphsWithoutEndings, paragraphEndingStatus)}
+        isHighlighted={highlightedCriteria === 'نهايات الفقرات'}
+        violationCount={paragraphEndings}
+        totalCount={analysis.paragraphs.length}
       />
 
       <CriteriaCard

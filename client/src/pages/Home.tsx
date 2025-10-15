@@ -92,18 +92,26 @@ export default function Home() {
     }
   }, [content, editor, highlightedPhrases, getColorForPhrase]);
 
-  const handleViolationClick = useCallback((violationText: string | null, criteriaTitle: string) => {
+  const handleViolationClick = useCallback((violations: string[] | null, criteriaTitle: string) => {
     setHighlightedKeyword(null);
     setHighlightedPhrases(new Set());
     
-    if (violationText) {
-      setHighlightedViolation(violationText);
+    if (violations && violations.length > 0) {
+      // Create highlights for all violations
+      const violationHighlights: HighlightConfig[] = violations.map(v => ({
+        text: v,
+        color: 'red',
+        type: 'violation' as const
+      }));
+      
+      setHighlights(violationHighlights);
+      setHighlightedViolation(violations[0]); // Keep first for backwards compatibility
       setHighlightedCriteria(criteriaTitle);
       
       if (editor) {
         setTimeout(() => {
           const normalizedContent = content.toLowerCase();
-          const normalizedViolation = violationText.toLowerCase();
+          const normalizedViolation = violations[0].toLowerCase();
           const index = normalizedContent.indexOf(normalizedViolation);
           
           if (index !== -1 && editor.scroll) {
@@ -116,6 +124,7 @@ export default function Home() {
         }, 100);
       }
     } else {
+      setHighlights([]);
       setHighlightedViolation(null);
       setHighlightedCriteria(null);
     }
