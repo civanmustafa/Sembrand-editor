@@ -10,6 +10,30 @@ The tool is designed specifically for Arabic RTL (right-to-left) content and imp
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### October 15, 2025 - UI/UX Enhancements
+
+**Repeated Phrases Tab Improvements**
+- Reorganized phrase display: icons moved to the left, text centered for better RTL layout
+- Added persistent color coding for each phrase throughout the editor (10 distinct colors)
+- Implemented collapsible phrase categories (2-8 word phrases) with expanded default state
+- Added "Highlight All" button with icon to show all repeated phrases at once
+
+**Information Dashboards**
+- Structure Tab: Added statistics dashboard with gradient background showing paragraph count, heading count, and list count with meaningful icons (FileText, Heading, List)
+- Phrases Tab: Enhanced statistics display with gradient background showing total words, unique words, and repeated phrases count with icons (Hash, ListOrdered, Repeat, FileText)
+
+**Criteria Display Enhancement**
+- Replaced inline descriptions with info icon tooltips for cleaner UI
+- Tooltips provide detailed explanations on hover
+- Improved visual hierarchy with better spacing
+
+**Editor Toolbar Controls**
+- Added clear highlights button (Eraser icon) to remove all highlighting
+- Added remove empty lines button (RemoveFormatting icon) to clean up excessive whitespace while preserving rich text formatting
+- Both buttons use Quill delta operations to maintain text formatting integrity
+
 ## System Architecture
 
 ### Frontend Architecture
