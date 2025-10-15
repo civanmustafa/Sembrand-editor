@@ -1,6 +1,7 @@
-import { CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, XCircle, Info } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 type CriteriaStatus = 'achieved' | 'close' | 'violation';
 
@@ -13,6 +14,7 @@ interface CriteriaCardProps {
   details?: string[];
   onClick?: () => void;
   isHighlighted?: boolean;
+  tooltipContent?: string;
 }
 
 export default function CriteriaCard({
@@ -23,7 +25,8 @@ export default function CriteriaCard({
   current,
   details,
   onClick,
-  isHighlighted = false
+  isHighlighted = false,
+  tooltipContent
 }: CriteriaCardProps) {
   const statusConfig = {
     achieved: {
@@ -60,15 +63,22 @@ export default function CriteriaCard({
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
+          <div className="flex-1 flex items-center gap-2">
             <h3 
-              className={`font-semibold text-lg text-foreground mb-1 text-right ${onClick && status === 'violation' ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+              className={`font-semibold text-lg text-foreground text-right ${onClick && status === 'violation' ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
               onClick={onClick && status === 'violation' ? onClick : undefined}
             >
               {title}
             </h3>
-            {description && (
-              <p className="text-sm text-muted-foreground text-right">{description}</p>
+            {tooltipContent && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent side="left" className="max-w-xs">
+                  <p className="text-sm whitespace-pre-line">{tooltipContent}</p>
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
           <Icon className={`w-6 h-6 text-${config.color} shrink-0`} />

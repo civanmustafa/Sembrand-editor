@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import ContentEditor from '@/components/ContentEditor';
 import KeywordInput from '@/components/KeywordInput';
 import KeywordAnalysis from '@/components/KeywordAnalysis';
-import RepeatedPhrases from '@/components/RepeatedPhrases';
+import RepeatedPhrases, { PHRASE_COLORS } from '@/components/RepeatedPhrases';
 import StructureAnalysis from '@/components/StructureAnalysis';
 import ThemeToggle from '@/components/ThemeToggle';
 import SearchReplace from '@/components/SearchReplace';
@@ -127,7 +127,65 @@ export default function Home() {
   const handleClearAllHighlights = useCallback(() => {
     setHighlights([]);
     setIsKeywordsHighlighted(false);
+    setHighlightedKeyword(null);
+    setHighlightedPhrase(null);
+    setHighlightedViolation(null);
+    setHighlightedCriteria(null);
   }, []);
+
+  const handleHighlightAllPhrases = useCallback(() => {
+    if (!content.trim()) return;
+
+    const words = content
+      .toLowerCase()
+      .replace(/[^\u0600-\u06FF\s]/g, ' ')
+      .split(/\s+/)
+      .filter(w => w.length > 0);
+
+    const extractPhrases = (n: number): Array<{phrase: string, count: number}> => {
+      const phrasesMap = new Map<string, number>();
+      
+      for (let i = 0; i <= words.length - n; i++) {
+        const phrase = words.slice(i, i + n).join(' ');
+        phrasesMap.set(phrase, (phrasesMap.get(phrase) || 0) + 1);
+      }
+
+      return Array.from(phrasesMap.entries())
+        .filter(([_, count]) => count > 1)
+        .map(([phrase, count]) => ({ phrase, count }));
+    };
+
+    const getColorForPhrase = (phrase: string): string => {
+      let hash = 0;
+      for (let i = 0; i < phrase.length; i++) {
+        hash = phrase.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const index = Math.abs(hash) % PHRASE_COLORS.length;
+      return PHRASE_COLORS[index].highlight;
+    };
+
+    const allPhrases = [
+      ...extractPhrases(2),
+      ...extractPhrases(3),
+      ...extractPhrases(4),
+      ...extractPhrases(5),
+      ...extractPhrases(6),
+      ...extractPhrases(7),
+      ...extractPhrases(8),
+    ];
+
+    const phraseHighlights: HighlightConfig[] = allPhrases.map(p => ({
+      text: p.phrase,
+      color: getColorForPhrase(p.phrase),
+      type: 'phrase' as const
+    }));
+
+    setHighlights(phraseHighlights);
+    setHighlightedKeyword(null);
+    setHighlightedPhrase(null);
+    setHighlightedViolation(null);
+    setHighlightedCriteria(null);
+  }, [content]);
 
   const handleToggleKeywordsHighlight = useCallback(() => {
     if (isKeywordsHighlighted) {
@@ -256,6 +314,7 @@ export default function Home() {
               highlightedKeyword={highlightedKeyword || highlightedPhrase || highlightedViolation}
               highlights={highlights}
               onEditorReady={setEditor}
+              onClearHighlights={handleClearAllHighlights}
             />
           </div>
 
@@ -283,6 +342,7 @@ export default function Home() {
                   content={content}
                   onPhraseClick={handlePhraseClick}
                   highlightedPhrase={highlightedPhrase}
+                  onHighlightAll={handleHighlightAllPhrases}
                 />
               </TabsContent>
             </Tabs>

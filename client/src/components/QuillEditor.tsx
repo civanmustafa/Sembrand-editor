@@ -1,10 +1,12 @@
 import { useRef, useEffect, useMemo } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { Button } from '@/components/ui/button';
+import { EraserIcon, RemoveFormatting } from 'lucide-react';
 
 export interface HighlightConfig {
   text: string;
-  color: 'green' | 'orange' | 'red' | 'purple' | 'blue' | 'yellow';
+  color: 'green' | 'orange' | 'red' | 'purple' | 'blue' | 'yellow' | string;
   type: 'primary' | 'secondary' | 'company' | 'phrase' | 'violation';
 }
 
@@ -14,6 +16,7 @@ interface QuillEditorProps {
   highlightedKeyword?: string | null;
   highlights?: HighlightConfig[];
   onEditorReady?: (editor: any) => void;
+  onClearHighlights?: () => void;
 }
 
 export default function QuillEditor({
@@ -21,7 +24,8 @@ export default function QuillEditor({
   onChange,
   highlightedKeyword,
   highlights = [],
-  onEditorReady
+  onEditorReady,
+  onClearHighlights
 }: QuillEditorProps) {
   const quillRef = useRef<ReactQuill>(null);
 
@@ -40,17 +44,22 @@ export default function QuillEditor({
     const editor = quillRef.current.getEditor();
     const editorContainer = editor.root;
     
-    // Remove all existing highlights
+    // Remove all existing highlights while preserving child nodes and formatting
     editorContainer.querySelectorAll('.highlight-mark').forEach(mark => {
       const parent = mark.parentNode;
       if (parent) {
-        parent.replaceChild(document.createTextNode(mark.textContent || ''), mark);
+        // Move all child nodes out of the highlight span
+        while (mark.firstChild) {
+          parent.insertBefore(mark.firstChild, mark);
+        }
+        // Remove the now-empty highlight span
+        parent.removeChild(mark);
       }
     });
     
     if (!highlightedKeyword && highlights.length === 0) return;
     
-    const colorMap = {
+    const colorMap: Record<string, string> = {
       green: '#22c55e',
       orange: '#f97316',
       red: '#ef4444',
@@ -65,7 +74,6 @@ export default function QuillEditor({
       const textContent = editorContainer.textContent || '';
       
       // For Arabic phrases, we need to find matches more flexibly
-      // Remove non-Arabic characters for comparison but keep original for display
       const normalizeForSearch = (str: string) => {
         return str
           .toLowerCase()
@@ -81,7 +89,6 @@ export default function QuillEditor({
       
       // Create a regex pattern that allows for punctuation between words
       const escapedWords = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-      // Pattern: word + (optional punctuation + whitespace + optional punctuation) + word
       const regexPattern = escapedWords.join('[^\\u0600-\\u06FF\\s]*\\s+[^\\u0600-\\u06FF\\s]*');
       const regex = new RegExp(regexPattern, 'gi');
       
@@ -158,7 +165,8 @@ export default function QuillEditor({
     
     // Apply multi-keyword highlights first
     highlights.forEach(h => {
-      applyHighlight(h.text, `${colorMap[h.color]}33`);
+      const highlightColor = colorMap[h.color] || h.color;
+      applyHighlight(h.text, `${highlightColor}33`);
     });
     
     // Apply single keyword highlight last (highest priority)
@@ -167,16 +175,58 @@ export default function QuillEditor({
     }
   }, [highlightedKeyword, highlights, value]);
 
+  const handleRemoveEmptyLines = () => {
+    if (!quillRef.current) return;
+    
+    const editor = quillRef.current.getEditor();
+    const delta = editor.getContents();
+    
+    // Process delta to remove excessive empty lines while preserving formatting
+    const ops = delta.ops || [];
+    const newOps: any[] = [];
+    let consecutiveNewlines = 0;
+    
+    ops.forEach(op => {
+      if (typeof op.insert === 'string') {
+        const text = op.insert;
+        let processedText = '';
+        
+        for (const char of text) {
+          if (char === '\n') {
+            consecutiveNewlines++;
+            if (consecutiveNewlines <= 2) {
+              processedText += char;
+            }
+          } else {
+            consecutiveNewlines = 0;
+            processedText += char;
+          }
+        }
+        
+        if (processedText) {
+          newOps.push({ ...op, insert: processedText });
+        }
+      } else {
+        newOps.push(op);
+        consecutiveNewlines = 0;
+      }
+    });
+    
+    editor.setContents({ ops: newOps });
+  };
+
   const modules = useMemo(() => ({
-    toolbar: [
-      [{ 'header': [1, 2, 3, 4, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'direction': 'rtl' }],
-      [{ 'align': [] }],
-      ['link', 'code-block'],
-      ['clean']
-    ]
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, 4, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'direction': 'rtl' }],
+        [{ 'align': [] }],
+        ['link', 'code-block'],
+        ['clean']
+      ]
+    }
   }), []);
 
   const formats = [
@@ -206,6 +256,9 @@ export default function QuillEditor({
         }
         .quill-editor-wrapper .ql-toolbar {
           direction: ltr;
+          display: flex;
+          align-items: center;
+          gap: 4px;
         }
         .quill-editor-wrapper .highlight-mark {
           border-radius: 3px;
@@ -231,16 +284,48 @@ export default function QuillEditor({
         .ql-snow .ql-picker.ql-header .ql-picker-item:not([data-value])::before {
           content: 'نص عادي';
         }
+        .editor-custom-buttons {
+          display: flex;
+          gap: 4px;
+          margin-right: auto;
+          margin-left: 8px;
+        }
       `}</style>
-      <ReactQuill
-        ref={quillRef}
-        theme="snow"
-        value={value}
-        onChange={onChange}
-        modules={modules}
-        formats={formats}
-        placeholder="ابدأ الكتابة أو الصق المحتوى هنا..."
-      />
+      <div className="relative">
+        <ReactQuill
+          ref={quillRef}
+          theme="snow"
+          value={value}
+          onChange={onChange}
+          modules={modules}
+          formats={formats}
+          placeholder="ابدأ الكتابة أو الصق المحتوى هنا..."
+        />
+        <div className="editor-custom-buttons absolute top-2 left-2 z-10">
+          {onClearHighlights && (
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={onClearHighlights}
+              className="h-7 w-7 bg-background"
+              data-testid="button-clear-highlights"
+              title="إلغاء جميع التمييز"
+            >
+              <EraserIcon className="w-3.5 h-3.5" />
+            </Button>
+          )}
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={handleRemoveEmptyLines}
+            className="h-7 w-7 bg-background"
+            data-testid="button-remove-empty-lines"
+            title="مسح الأسطر الفارغة الزائدة"
+          >
+            <RemoveFormatting className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

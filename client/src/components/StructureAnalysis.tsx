@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import CriteriaCard from './CriteriaCard';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlignLeft, Heading, List } from 'lucide-react';
 
 interface StructureAnalysisProps {
   content: string;
@@ -26,7 +28,10 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         paragraphs: [],
         sentences: [],
         headings: { h2: [], h3: [], h4: [] },
-        allHeadings: []
+        allHeadings: [],
+        paragraphCount: 0,
+        headingsCount: 0,
+        listsCount: 0
       };
     }
 
@@ -39,6 +44,11 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
     const h4Headings = text.match(/^####\s+(.+)$/gm) || [];
     const allHeadings = text.match(/^#+\s+.+$/gm) || [];
 
+    // Count lists
+    const orderedLists = (text.match(/^\d+\.\s+/gm) || []).length;
+    const bulletLists = (text.match(/^[•\-*]\s+/gm) || []).length;
+    const listsCount = Math.ceil((orderedLists + bulletLists) / 2); // Approximate list count
+
     return { 
       wordCount, 
       paragraphs, 
@@ -48,7 +58,10 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         h3: h3Headings.map(h => h.replace(/^###\s+/, '')),
         h4: h4Headings.map(h => h.replace(/^####\s+/, ''))
       },
-      allHeadings 
+      allHeadings,
+      paragraphCount: paragraphs.length,
+      headingsCount: allHeadings.length,
+      listsCount
     };
   }, [content]);
 
@@ -334,6 +347,41 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
   return (
     <div className="space-y-4">
+      <Card className="bg-gradient-to-br from-accent/10 via-background to-primary/5">
+        <CardHeader>
+          <CardTitle className="text-base">لوحة المعلومات</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-3 gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <AlignLeft className="w-4 h-4 text-primary" />
+              <p className="text-sm text-muted-foreground">عدد الفقرات</p>
+            </div>
+            <p className="text-2xl font-bold" data-testid="stat-paragraphs">
+              {analysis.paragraphCount}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Heading className="w-4 h-4 text-primary" />
+              <p className="text-sm text-muted-foreground">عدد العناوين</p>
+            </div>
+            <p className="text-2xl font-bold" data-testid="stat-headings">
+              {analysis.headingsCount}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <List className="w-4 h-4 text-primary" />
+              <p className="text-sm text-muted-foreground">عدد القوائم</p>
+            </div>
+            <p className="text-2xl font-bold" data-testid="stat-lists">
+              {analysis.listsCount}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="mb-6">
         <h2 className="text-2xl font-semibold text-foreground mb-2">معايير الهيكل والمحتوى</h2>
         <p className="text-muted-foreground">تحليل شامل لبنية المحتوى ومطابقتها للمعايير</p>
@@ -341,25 +389,25 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="الكلمات"
-        description="إجمالي عدد الكلمات في المحتوى الكامل"
         status={wordCountStatus}
         required="أكثر من 800"
         current={`${analysis.wordCount}`}
+        tooltipContent="إجمالي عدد الكلمات في المحتوى الكامل"
       />
 
       <CriteriaCard
         title="الفقرة التلخيصية"
-        description="الفقرة الأولى في المحتوى التي تلخص الموضوع (2-4 جمل، 30-60 كلمة)"
         status={summaryStatus}
         required="2-4 جمل (30-60 كلمة)"
         current={`${firstParaSents} جمل، ${firstParaWords} كلمة`}
         onClick={() => handleCriteriaClick('الفقرة التلخيصية', firstPara, summaryStatus)}
         isHighlighted={highlightedCriteria === 'الفقرة التلخيصية'}
+        tooltipContent="الفقرة الأولى في المحتوى التي تلخص الموضوع (2-4 جمل، 30-60 كلمة)"
       />
 
       <CriteriaCard
         title="الفقرة الثانية"
-        description="الفقرة التي تلي الفقرة التلخيصية مباشرة (2-3 جمل، 30-60 كلمة)"
+        tooltipContent="الفقرة التي تلي الفقرة التلخيصية مباشرة (2-3 جمل، 30-60 كلمة)"
         status={secondParaStatus}
         required="2-3 جمل (30-60 كلمة)"
         current={`${secondParaSents} جمل، ${secondParaWords} كلمة`}
@@ -369,7 +417,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="طول الفقرات"
-        description="متوسط طول الفقرات في المحتوى (3-5 جمل، 50-70 كلمة)"
+        tooltipContent="متوسط طول الفقرات في المحتوى (3-5 جمل، 50-70 كلمة)"
         status={paragraphStatus}
         required="3-5 جمل (50-70 كلمة)"
         current={`${violatingParagraphs.length} فقرة مخالفة`}
@@ -383,7 +431,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="عنوان H2"
-        description="العناوين الرئيسية من المستوى الثاني H2 في المحتوى"
+        tooltipContent="العناوين الرئيسية من المستوى الثاني H2 في المحتوى"
         status={h2Status}
         required="تنظيم حسب عدد الكلمات"
         current={violatingH2Count > 0 ? `${violatingH2Count} عنوان مخالف` : 'جميع العناوين متوافقة'}
@@ -392,7 +440,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="عنوان H3"
-        description="العناوين الفرعية من المستوى الثالث (1-2 فقرة، 60-150 كلمة)"
+        tooltipContent="العناوين الفرعية من المستوى الثالث (1-2 فقرة، 60-150 كلمة)"
         status={h3Status}
         required="1-2 فقرة (60-150 كلمة)"
         current={h3Status === 'achieved' ? 'متوافق' : 'غير متوافق'}
@@ -400,7 +448,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="عنوان H4"
-        description="العناوين الفرعية من المستوى الرابع (1 فقرة، 30-80 كلمة)"
+        tooltipContent="العناوين الفرعية من المستوى الرابع (1 فقرة، 30-80 كلمة)"
         status={h4Status}
         required="1 فقرة (30-80 كلمة)"
         current={h4Status === 'achieved' ? 'متوافق' : 'غير متوافق'}
@@ -408,7 +456,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="بين H2-H3"
-        description="مسافة المحتوى بين عنوان H2 والعنوان H3 الذي يليه (1-2 فقرة، 50-140 كلمة)"
+        tooltipContent="مسافة المحتوى بين عنوان H2 والعنوان H3 الذي يليه (1-2 فقرة، 50-140 كلمة)"
         status={h2ToH3Status}
         required="1-2 فقرة (50-140 كلمة)"
         current={h2ToH3Status === 'achieved' ? 'متوافق' : 'غير متوافق'}
@@ -416,7 +464,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="قسم H2 خاص بالأسئلة والأجوبة"
-        description="معرفة هل يوجد قسم خاص للأسئلة والأجوبة في النص"
+        tooltipContent="معرفة هل يوجد قسم خاص للأسئلة والأجوبة في النص"
         status={faqStatus}
         required="وجود كلمات: أسئلة، الأسئلة، سؤال وجواب"
         current={hasFAQSection ? 'يوجد' : 'لا يوجد'}
@@ -428,7 +476,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="نهايات الفقرات"
-        description="كل فقرة يجب أن تنتهي بأحد العلامات (. ! ? ؟ :)"
+        tooltipContent="كل فقرة يجب أن تنتهي بأحد العلامات (. ! ? ؟ :)"
         status={paragraphEndingStatus}
         required="جميع الفقرات تنتهي بعلامة ترقيم"
         current={paragraphEndings === 0 ? 'جميع الفقرات صحيحة' : `${paragraphEndings} فقرة بدون علامة ترقيم`}
@@ -436,7 +484,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="عناوين H2 استفهامية"
-        description="وجود كلمات تدل على الاستفهام والتساؤل في عناوين H2"
+        tooltipContent="وجود كلمات تدل على الاستفهام والتساؤل في عناوين H2"
         status={interrogativeH2Status}
         required="3"
         current={`${interrogativeH2Count}`}
@@ -444,7 +492,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="كلمات انتقالية مختلفة"
-        description="الكلمات التي تربط بين الأفكار والفقرات بشكل منطقي (2-3 كلمات مختلفة)"
+        tooltipContent="الكلمات التي تربط بين الأفكار والفقرات بشكل منطقي (2-3 كلمات مختلفة)"
         status={transitionStatus}
         required="3"
         current={`${transitionWordsCount}`}
@@ -452,7 +500,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="كلمات مكررة في نفس الفقرة"
-        description="تكرار نفس الكلمة أكثر من مرة في الفقرة الواحدة"
+        tooltipContent="تكرار نفس الكلمة أكثر من مرة في الفقرة الواحدة"
         status={repeatedParaStatus}
         required="أقل من 3"
         current={`${repeatedWordsInParagraphs}`}
@@ -460,7 +508,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="كلمات مكررة في نفس العنوان"
-        description="تكرار نفس الكلمة أكثر من مرة في العنوان الواحد"
+        tooltipContent="تكرار نفس الكلمة أكثر من مرة في العنوان الواحد"
         status={repeatedHeadingStatus}
         required="0"
         current={`${headingsWithRepeatedWords}`}
@@ -468,7 +516,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="كلمات الحث على اتخاذ إجراء"
-        description="الكلمات والعبارات التي تحث القارئ على اتخاذ إجراء معين"
+        tooltipContent="الكلمات والعبارات التي تحث القارئ على اتخاذ إجراء معين"
         status={ctaStatus}
         required="وجود كلمة واحدة على الأقل"
         current={hasCtaWords ? 'يوجد' : 'لا يوجد'}
@@ -476,7 +524,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="0.02% لغة تفاعلية"
-        description="النسبة المئوية من الكلمات التفاعلية في المحتوى"
+        tooltipContent="النسبة المئوية من الكلمات التفاعلية في المحتوى"
         status={interactiveStatus}
         required={`${requiredInteractiveWords} كلمة على الأقل`}
         current={`${interactiveWordCount} كلمة`}
@@ -488,7 +536,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="آخر عنوان H2"
-        description="آخر عنوان من المستوى الثاني H2 في المقال يجب أن يحتوي على أحد الكلمات المحددة"
+        tooltipContent="آخر عنوان من المستوى الثاني H2 في المقال يجب أن يحتوي على أحد الكلمات المحددة"
         status={lastH2Status}
         required="وجود كلمة ختامية"
         current={lastH2HasConclusionWord ? conclusionKeywords.find(kw => lastH2.includes(kw)) || 'يوجد' : 'لا يوجد'}
@@ -496,7 +544,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="فقرة الخاتمة"
-        description="وجود خاتمة واضحة في الفقرة الخاصة بآخر عنوان H2"
+        tooltipContent="وجود خاتمة واضحة في الفقرة الخاصة بآخر عنوان H2"
         status={conclusionParaStatus}
         required="1 كلمة ختامية على الأقل"
         current={conclusionParaHasKeyword ? conclusionKeywords.find(kw => conclusionFirstPara.includes(kw)) || 'يوجد' : '0'}
@@ -504,7 +552,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="عدد كلمات الخاتمة"
-        description="عدد الكلمات في قسم الخاتمة والذي هو كل المحتوى بعد آخر عنوان H2 (150-300 كلمة)"
+        tooltipContent="عدد الكلمات في قسم الخاتمة والذي هو كل المحتوى بعد آخر عنوان H2 (150-300 كلمة)"
         status={conclusionWordsStatus}
         required="150-300"
         current={`${conclusionWords}`}
@@ -512,7 +560,7 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
 
       <CriteriaCard
         title="التعداد الآلي"
-        description="وجود قوائم منظمة في الخاتمة أي بعد آخر عنوان H2 في المحتوى"
+        tooltipContent="وجود قوائم منظمة في الخاتمة أي بعد آخر عنوان H2 في المحتوى"
         status={bulletPointsStatus}
         required="قائمة واحدة على الأقل"
         current={bulletPointsType}
