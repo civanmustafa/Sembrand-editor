@@ -36,16 +36,25 @@ export default function Home() {
     } else {
       setHighlightedKeyword(keyword);
       
-      // تحريك المؤشر إلى أول ظهور للكلمة بدون سكرول إذا كان moveCursorOnly = true
-      if (moveCursorOnly && editor && keyword) {
+      // تحريك المؤشر والسكرول إلى أول ظهور للكلمة
+      if (editor && keyword) {
         setTimeout(() => {
           const normalizedContent = content.toLowerCase();
           const normalizedKeyword = keyword.toLowerCase();
           const index = normalizedContent.indexOf(normalizedKeyword);
           
           if (index !== -1) {
-            // Set cursor position without scrolling
+            // Set cursor position
             editor.setSelection(index, 0);
+            
+            // Scroll to position only if not moveCursorOnly
+            if (!moveCursorOnly && editor.scroll) {
+              const totalLength = content.length;
+              const scrollPercentage = index / totalLength;
+              const editorHeight = editor.scroll.domNode.scrollHeight;
+              const scrollPosition = scrollPercentage * editorHeight;
+              editor.scroll.domNode.scrollTop = scrollPosition;
+            }
           }
         }, 100);
       }

@@ -12,6 +12,37 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 15, 2025 - Enhanced Navigation & Violation Detection
+
+**Smart Cursor Navigation**
+- Company name highlighting now moves cursor only without scrolling the keyword input card
+- Normal keywords (primary/sub) maintain full navigation with cursor movement and scrolling
+- Enhanced handleKeywordClick with moveCursorOnly parameter for fine-grained control
+- Improved user experience: company name stays visible in keyword card while cursor highlights occurrences
+
+**Comprehensive Violation Highlighting**
+- Added click-to-highlight for all heading violations (H2, H3, H4, H2-H3 gaps)
+- Each violation criterion now highlights ALL violating instances simultaneously
+- New violation extraction functions: violatingH2s, violatingH3s, violatingH4s, violatingGaps
+- Enhanced CriteriaCard onClick handlers with proper parameter passing (shouldScroll, moveCursorOnly)
+
+**Interrogative H2 Detection Enhancement**
+- Real-time detection of interrogative H2 headings starting with question words
+- Question words: ما، من، متى، أين، كيف، لماذا، هل، أليس، ألا، أم
+- Criteria now requires headings to START with question words (not just contain them)
+- More accurate validation aligned with SEO best practices
+
+**Repeated Word Detection**
+- Click-to-highlight for paragraphs containing repeated words
+- Click-to-highlight for headings containing repeated words
+- Visual feedback shows all instances with word repetitions
+- Helps writers identify and fix redundant content
+
+**Structural Improvements**
+- Headings now properly excluded from "paragraph endings" validation
+- Last H2 and conclusion paragraph criteria support cursor-only navigation with moveCursorOnly
+- Enhanced handleViolationClick supports shouldScroll and moveCursorOnly for complex navigation scenarios
+
 ### October 15, 2025 - Latest UI/UX Enhancements
 
 **Selection Statistics**
