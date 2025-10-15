@@ -63,11 +63,40 @@ export default function QuillEditor({
       if (!text) return;
       
       const textContent = editorContainer.textContent || '';
-      const normalizedText = text.toLowerCase();
-      const normalizedContent = textContent.toLowerCase();
       
-      let startIndex = 0;
-      while ((startIndex = normalizedContent.indexOf(normalizedText, startIndex)) !== -1) {
+      // For Arabic phrases, we need to find matches more flexibly
+      // Remove non-Arabic characters for comparison but keep original for display
+      const normalizeForSearch = (str: string) => {
+        return str
+          .toLowerCase()
+          .replace(/[^\u0600-\u06FF\s]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      };
+      
+      const normalizedText = normalizeForSearch(text);
+      const words = normalizedText.split(' ').filter(w => w.length > 0);
+      
+      if (words.length === 0) return;
+      
+      // Create a regex pattern that allows for punctuation between words
+      const escapedWords = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      // Pattern: word + (optional punctuation + whitespace + optional punctuation) + word
+      const regexPattern = escapedWords.join('[^\\u0600-\\u06FF\\s]*\\s+[^\\u0600-\\u06FF\\s]*');
+      const regex = new RegExp(regexPattern, 'gi');
+      
+      let match;
+      const matches: Array<{start: number, end: number}> = [];
+      
+      while ((match = regex.exec(textContent)) !== null) {
+        matches.push({
+          start: match.index,
+          end: match.index + match[0].length
+        });
+      }
+      
+      // Apply highlights for each match
+      matches.forEach(({start, end}) => {
         const range = document.createRange();
         let charCount = 0;
         let foundStart = false;
@@ -88,15 +117,15 @@ export default function QuillEditor({
           const node = walker.currentNode;
           const nodeLength = node.textContent?.length || 0;
           
-          if (!foundStart && charCount + nodeLength > startIndex) {
+          if (!foundStart && charCount + nodeLength > start) {
             startNode = node;
-            startOffset = startIndex - charCount;
+            startOffset = start - charCount;
             foundStart = true;
           }
           
-          if (foundStart && charCount + nodeLength >= startIndex + text.length) {
+          if (foundStart && charCount + nodeLength >= end) {
             endNode = node;
-            endOffset = (startIndex + text.length) - charCount;
+            endOffset = end - charCount;
             foundEnd = true;
             break;
           }
@@ -124,9 +153,7 @@ export default function QuillEditor({
             // Ignore errors from ranges that span multiple elements
           }
         }
-        
-        startIndex += text.length;
-      }
+      });
     };
     
     // Apply multi-keyword highlights first
