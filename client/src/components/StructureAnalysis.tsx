@@ -3,9 +3,21 @@ import CriteriaCard from './CriteriaCard';
 
 interface StructureAnalysisProps {
   content: string;
+  onViolationClick?: (violationText: string | null, criteriaTitle: string) => void;
+  highlightedCriteria?: string | null;
 }
 
-export default function StructureAnalysis({ content }: StructureAnalysisProps) {
+export default function StructureAnalysis({ content, onViolationClick, highlightedCriteria }: StructureAnalysisProps) {
+  
+  const handleCriteriaClick = (criteriaTitle: string, violationText: string | null, status: 'achieved' | 'close' | 'violation') => {
+    if (status === 'violation' && onViolationClick) {
+      if (highlightedCriteria === criteriaTitle) {
+        onViolationClick(null, criteriaTitle);
+      } else {
+        onViolationClick(violationText, criteriaTitle);
+      }
+    }
+  };
   const analysis = useMemo(() => {
     const text = content.trim();
     if (!text) {
@@ -341,6 +353,8 @@ export default function StructureAnalysis({ content }: StructureAnalysisProps) {
         status={summaryStatus}
         required="2-4 جمل (30-60 كلمة)"
         current={`${firstParaSents} جمل، ${firstParaWords} كلمة`}
+        onClick={() => handleCriteriaClick('الفقرة التلخيصية', firstPara, summaryStatus)}
+        isHighlighted={highlightedCriteria === 'الفقرة التلخيصية'}
       />
 
       <CriteriaCard
@@ -349,6 +363,8 @@ export default function StructureAnalysis({ content }: StructureAnalysisProps) {
         status={secondParaStatus}
         required="2-3 جمل (30-60 كلمة)"
         current={`${secondParaSents} جمل، ${secondParaWords} كلمة`}
+        onClick={() => handleCriteriaClick('الفقرة الثانية', secondPara, secondParaStatus)}
+        isHighlighted={highlightedCriteria === 'الفقرة الثانية'}
       />
 
       <CriteriaCard
@@ -357,6 +373,8 @@ export default function StructureAnalysis({ content }: StructureAnalysisProps) {
         status={paragraphStatus}
         required="3-5 جمل (50-70 كلمة)"
         current={`${violatingParagraphs.length} فقرة مخالفة`}
+        onClick={() => handleCriteriaClick('طول الفقرات', violatingParagraphs[0] || null, paragraphStatus)}
+        isHighlighted={highlightedCriteria === 'طول الفقرات'}
       />
 
       <div className="my-6 border-t border-border pt-4">

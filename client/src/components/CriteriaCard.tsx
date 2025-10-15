@@ -11,6 +11,8 @@ interface CriteriaCardProps {
   required: string;
   current: string;
   details?: string[];
+  onClick?: () => void;
+  isHighlighted?: boolean;
 }
 
 export default function CriteriaCard({
@@ -19,7 +21,9 @@ export default function CriteriaCard({
   status,
   required,
   current,
-  details
+  details,
+  onClick,
+  isHighlighted = false
 }: CriteriaCardProps) {
   const statusConfig = {
     achieved: {
@@ -52,12 +56,17 @@ export default function CriteriaCard({
   const Icon = config.icon;
 
   return (
-    <Card className={`p-6 border-r-4 ${config.border} ${config.bg}`} data-testid={`card-criteria-${title}`} dir="rtl">
+    <Card className={`p-6 border-r-4 ${config.border} ${config.bg} ${isHighlighted ? 'ring-2 ring-primary' : ''}`} data-testid={`card-criteria-${title}`} dir="rtl">
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <h3 className="font-semibold text-lg text-foreground mb-1 text-right">{title}</h3>
+            <h3 
+              className={`font-semibold text-lg text-foreground mb-1 text-right ${onClick && status === 'violation' ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+              onClick={onClick && status === 'violation' ? onClick : undefined}
+            >
+              {title}
+            </h3>
             {description && (
               <p className="text-sm text-muted-foreground text-right">{description}</p>
             )}

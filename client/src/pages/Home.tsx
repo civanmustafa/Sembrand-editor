@@ -8,7 +8,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import SearchReplace from '@/components/SearchReplace';
 import { FileSearch } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { HighlightConfig } from '@/components/SlateEditor';
+import { HighlightConfig } from '@/components/QuillEditor';
 import { normalizeArabicText } from '@/lib/arabicUtils';
 
 export default function Home() {
@@ -21,6 +21,8 @@ export default function Home() {
   const [companyName, setCompanyName] = useState('');
   const [highlightedKeyword, setHighlightedKeyword] = useState<string | null>(null);
   const [highlightedPhrase, setHighlightedPhrase] = useState<string | null>(null);
+  const [highlightedViolation, setHighlightedViolation] = useState<string | null>(null);
+  const [highlightedCriteria, setHighlightedCriteria] = useState<string | null>(null);
   const [highlights, setHighlights] = useState<HighlightConfig[]>([]);
   const [editor, setEditor] = useState<any>(null);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -28,6 +30,8 @@ export default function Home() {
 
   const handleKeywordClick = (keyword: string) => {
     setHighlightedPhrase(null);
+    setHighlightedViolation(null);
+    setHighlightedCriteria(null);
     if (highlightedKeyword === keyword) {
       setHighlightedKeyword(null);
     } else {
@@ -38,7 +42,38 @@ export default function Home() {
   const handlePhraseClick = (phrase: string | null) => {
     setHighlightedKeyword(null);
     setHighlightedPhrase(phrase);
+    setHighlightedViolation(null);
+    setHighlightedCriteria(null);
   };
+
+  const handleViolationClick = useCallback((violationText: string | null, criteriaTitle: string) => {
+    setHighlightedKeyword(null);
+    setHighlightedPhrase(null);
+    
+    if (violationText) {
+      setHighlightedViolation(violationText);
+      setHighlightedCriteria(criteriaTitle);
+      
+      if (editor) {
+        setTimeout(() => {
+          const normalizedContent = content.toLowerCase();
+          const normalizedViolation = violationText.toLowerCase();
+          const index = normalizedContent.indexOf(normalizedViolation);
+          
+          if (index !== -1 && editor.scroll) {
+            const totalLength = content.length;
+            const scrollPercentage = index / totalLength;
+            const editorHeight = editor.scroll.domNode.scrollHeight;
+            const scrollPosition = scrollPercentage * editorHeight;
+            editor.scroll.domNode.scrollTop = scrollPosition;
+          }
+        }, 100);
+      }
+    } else {
+      setHighlightedViolation(null);
+      setHighlightedCriteria(null);
+    }
+  }, [content, editor]);
 
   const handleHighlightAllKeywords = useCallback(() => {
     const newHighlights: HighlightConfig[] = [];
@@ -202,7 +237,7 @@ export default function Home() {
             <ContentEditor
               content={content}
               onChange={setContent}
-              highlightedKeyword={highlightedKeyword || highlightedPhrase}
+              highlightedKeyword={highlightedKeyword || highlightedPhrase || highlightedViolation}
               highlights={highlights}
               onEditorReady={setEditor}
             />
@@ -220,7 +255,11 @@ export default function Home() {
               </TabsList>
               
               <TabsContent value="structure" className="mt-4">
-                <StructureAnalysis content={content} />
+                <StructureAnalysis 
+                  content={content} 
+                  onViolationClick={handleViolationClick}
+                  highlightedCriteria={highlightedCriteria}
+                />
               </TabsContent>
               
               <TabsContent value="phrases" className="mt-4">
