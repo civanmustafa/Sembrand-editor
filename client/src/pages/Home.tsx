@@ -9,6 +9,7 @@ import SearchReplace from '@/components/SearchReplace';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HighlightConfig } from '@/components/QuillEditor';
 import { normalizeArabicText } from '@/lib/arabicUtils';
+import { FileText, Repeat } from 'lucide-react';
 
 export default function Home() {
   const [content, setContent] = useState('');
@@ -115,9 +116,6 @@ export default function Home() {
   }, [content, editor, highlightedPhrases, getColorForPhrase]);
 
   const handleViolationClick = useCallback((violations: string[] | null, criteriaTitle: string, shouldScroll: boolean = true, moveCursorOnly: boolean = false) => {
-    setHighlightedKeyword(null);
-    setHighlightedPhrases(new Set());
-    
     if (violations && violations.length > 0) {
       // Create highlights for all violations
       const violationHighlights: HighlightConfig[] = violations.map(v => ({
@@ -126,14 +124,19 @@ export default function Home() {
         type: 'violation' as const
       }));
       
+      // Set highlights FIRST before clearing other states to prevent batching issues
       setHighlights(violationHighlights);
       setHighlightedViolation(violations[0]); // Keep first for backwards compatibility
       setHighlightedCriteria(criteriaTitle);
+      setHighlightedKeyword(null);
+      setHighlightedPhrases(new Set());
       
       if (editor) {
         setTimeout(() => {
+          // Remove markdown symbols for search
+          const searchText = violations[0].replace(/^#+\s+/, '').trim();
           const normalizedContent = content.toLowerCase();
-          const normalizedViolation = violations[0].toLowerCase();
+          const normalizedViolation = searchText.toLowerCase();
           const index = normalizedContent.indexOf(normalizedViolation);
           
           if (index !== -1) {
@@ -155,6 +158,8 @@ export default function Home() {
       setHighlights([]);
       setHighlightedViolation(null);
       setHighlightedCriteria(null);
+      setHighlightedKeyword(null);
+      setHighlightedPhrases(new Set());
     }
   }, [content, editor]);
 
@@ -365,11 +370,11 @@ export default function Home() {
           <div className="lg:col-span-3 overflow-auto">
             <Tabs defaultValue="structure" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="structure" data-testid="tab-structure">
-                  الهيكل والمحتوى
+                <TabsTrigger value="structure" data-testid="tab-structure" className="gap-1.5" title="الهيكل والمحتوى">
+                  <FileText className="w-4 h-4" />
                 </TabsTrigger>
-                <TabsTrigger value="phrases" data-testid="tab-phrases">
-                  الجمل المكررة
+                <TabsTrigger value="phrases" data-testid="tab-phrases" className="gap-1.5" title="الجمل المكررة">
+                  <Repeat className="w-4 h-4" />
                 </TabsTrigger>
               </TabsList>
               
