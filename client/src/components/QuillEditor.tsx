@@ -34,6 +34,112 @@ export default function QuillEditor({
     }
   }, [onEditorReady]);
 
+  useEffect(() => {
+    if (!quillRef.current) return;
+    
+    const editor = quillRef.current.getEditor();
+    const editorContainer = editor.root;
+    
+    // Remove all existing highlights
+    editorContainer.querySelectorAll('.highlight-mark').forEach(mark => {
+      const parent = mark.parentNode;
+      if (parent) {
+        parent.replaceChild(document.createTextNode(mark.textContent || ''), mark);
+      }
+    });
+    
+    if (!highlightedKeyword && highlights.length === 0) return;
+    
+    const colorMap = {
+      green: '#22c55e',
+      orange: '#f97316',
+      red: '#ef4444',
+      purple: '#a855f7',
+      blue: '#3b82f6',
+      yellow: '#eab308'
+    };
+    
+    const applyHighlight = (text: string, color: string, borderColor?: string) => {
+      if (!text) return;
+      
+      const textContent = editorContainer.textContent || '';
+      const normalizedText = text.toLowerCase();
+      const normalizedContent = textContent.toLowerCase();
+      
+      let startIndex = 0;
+      while ((startIndex = normalizedContent.indexOf(normalizedText, startIndex)) !== -1) {
+        const range = document.createRange();
+        let charCount = 0;
+        let foundStart = false;
+        let foundEnd = false;
+        
+        const walker = document.createTreeWalker(
+          editorContainer,
+          NodeFilter.SHOW_TEXT,
+          null
+        );
+        
+        let startNode: Node | null = null;
+        let startOffset = 0;
+        let endNode: Node | null = null;
+        let endOffset = 0;
+        
+        while (walker.nextNode()) {
+          const node = walker.currentNode;
+          const nodeLength = node.textContent?.length || 0;
+          
+          if (!foundStart && charCount + nodeLength > startIndex) {
+            startNode = node;
+            startOffset = startIndex - charCount;
+            foundStart = true;
+          }
+          
+          if (foundStart && charCount + nodeLength >= startIndex + text.length) {
+            endNode = node;
+            endOffset = (startIndex + text.length) - charCount;
+            foundEnd = true;
+            break;
+          }
+          
+          charCount += nodeLength;
+        }
+        
+        if (foundStart && foundEnd && startNode && endNode) {
+          try {
+            range.setStart(startNode, startOffset);
+            range.setEnd(endNode, endOffset);
+            
+            const mark = document.createElement('span');
+            mark.className = 'highlight-mark';
+            mark.style.backgroundColor = color;
+            mark.style.color = 'inherit';
+            mark.style.borderRadius = '3px';
+            mark.style.padding = '2px 4px';
+            if (borderColor) {
+              mark.style.border = `2px solid ${borderColor}`;
+            }
+            
+            range.surroundContents(mark);
+          } catch (e) {
+            // Ignore errors from ranges that span multiple elements
+          }
+        }
+        
+        startIndex += text.length;
+      }
+    };
+    
+    // Apply multi-keyword highlights first
+    highlights.forEach(h => {
+      applyHighlight(h.text, `${colorMap[h.color]}33`);
+    });
+    
+    // Apply single keyword highlight last (highest priority)
+    if (highlightedKeyword) {
+      applyHighlight(highlightedKeyword, `${colorMap.blue}66`, colorMap.blue);
+    }
+  }, [highlightedKeyword, highlights, value]);
+
   const modules = useMemo(() => ({
     toolbar: [
       [{ 'header': [1, 2, 3, 4, false] }],
@@ -53,46 +159,6 @@ export default function QuillEditor({
     'direction', 'align',
     'link', 'code-block'
   ];
-
-  const colorMap = {
-    green: '#22c55e',
-    orange: '#f97316',
-    red: '#ef4444',
-    purple: '#a855f7',
-    blue: '#3b82f6',
-    yellow: '#eab308'
-  };
-
-  const getHighlightedValue = () => {
-    if (!value) return value;
-    if (highlights.length === 0 && !highlightedKeyword) return value;
-
-    let highlightedContent = value;
-
-    const escapeRegex = (str: string) => {
-      return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    };
-
-    highlights.forEach(h => {
-      const escapedText = escapeRegex(h.text);
-      const regex = new RegExp(`(${escapedText})`, 'gi');
-      highlightedContent = highlightedContent.replace(
-        regex, 
-        `<mark style="background-color: ${colorMap[h.color]}33; color: inherit; border-radius: 2px; padding: 1px 2px;" data-highlight-type="${h.type}">$1</mark>`
-      );
-    });
-
-    if (highlightedKeyword) {
-      const escapedKeyword = escapeRegex(highlightedKeyword);
-      const regex = new RegExp(`(${escapedKeyword})`, 'gi');
-      highlightedContent = highlightedContent.replace(
-        regex, 
-        `<mark style="background-color: ${colorMap.blue}66; border: 2px solid ${colorMap.blue}; border-radius: 3px; padding: 2px;" data-highlight-type="selected">$1</mark>`
-      );
-    }
-
-    return highlightedContent;
-  };
 
   return (
     <div className="quill-editor-wrapper" dir="rtl">
@@ -114,9 +180,9 @@ export default function QuillEditor({
         .quill-editor-wrapper .ql-toolbar {
           direction: ltr;
         }
-        .quill-editor-wrapper mark {
-          border-radius: 2px;
-          padding: 1px 2px;
+        .quill-editor-wrapper .highlight-mark {
+          border-radius: 3px;
+          padding: 2px 4px;
         }
         .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="1"]::before,
         .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before {
@@ -142,7 +208,7 @@ export default function QuillEditor({
       <ReactQuill
         ref={quillRef}
         theme="snow"
-        value={getHighlightedValue()}
+        value={value}
         onChange={onChange}
         modules={modules}
         formats={formats}
