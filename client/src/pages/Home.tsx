@@ -20,17 +20,24 @@ export default function Home() {
   const [subKeyword4, setSubKeyword4] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [highlightedKeyword, setHighlightedKeyword] = useState<string | null>(null);
+  const [highlightedPhrase, setHighlightedPhrase] = useState<string | null>(null);
   const [highlights, setHighlights] = useState<HighlightConfig[]>([]);
   const [editor, setEditor] = useState<any>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isKeywordsHighlighted, setIsKeywordsHighlighted] = useState(false);
 
   const handleKeywordClick = (keyword: string) => {
+    setHighlightedPhrase(null);
     if (highlightedKeyword === keyword) {
       setHighlightedKeyword(null);
     } else {
       setHighlightedKeyword(keyword);
     }
+  };
+
+  const handlePhraseClick = (phrase: string | null) => {
+    setHighlightedKeyword(null);
+    setHighlightedPhrase(phrase);
   };
 
   const handleHighlightAllKeywords = useCallback(() => {
@@ -195,7 +202,7 @@ export default function Home() {
             <ContentEditor
               content={content}
               onChange={setContent}
-              highlightedKeyword={highlightedKeyword}
+              highlightedKeyword={highlightedKeyword || highlightedPhrase}
               highlights={highlights}
               onEditorReady={setEditor}
             />
@@ -219,8 +226,8 @@ export default function Home() {
               <TabsContent value="phrases" className="mt-4">
                 <RepeatedPhrases
                   content={content}
-                  onPhraseClick={setHighlightedKeyword}
-                  highlightedPhrase={highlightedKeyword}
+                  onPhraseClick={handlePhraseClick}
+                  highlightedPhrase={highlightedPhrase}
                 />
               </TabsContent>
             </Tabs>
