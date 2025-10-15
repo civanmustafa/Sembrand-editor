@@ -62,3 +62,21 @@ All migration items have been successfully completed:
 [x] 30. Migration complete - all items marked as done
 
 **Status: ✅ MIGRATION FULLY COMPLETED - APPLICATION RUNNING SUCCESSFULLY**
+
+## تحديثات واجهة المستخدم - 15 أكتوبر 2025 (الجلسة الأخيرة)
+
+[x] 31. حذف النصوص التوضيحية من بطاقات الإحصائيات في تبويب الجمل المكررة والهيكل والمحتوى
+[x] 32. تعديل تخطيط بطاقات الجمل المكررة - وضع اسم التصنيف على اليمين مع محاذاة RTL
+[x] 33. تحسين التنقل عند النقر على جملة مكررة - نقل المؤشر بدون سكرول
+[x] 34. إضافة منطق لإزالة الجمل من التمييز تلقائياً عندما تصبح غير مكررة
+[x] 35. منع السكرول في التبويب عند النقر على زر النسخ
+[x] 36. إصلاح مشكلة التمييز - إضافة منطق toggle لعدم اختفاء التمييز مباشرة
+[x] 37. تحسين تمييز العناوين في المحرر - إضافة CSS للعناوين H1-H4 مع حدود وتنسيق واضح
+
+**الملفات المعدلة:**
+- client/src/components/RepeatedPhrases.tsx (حذف النصوص + تعديل التخطيط)
+- client/src/components/StructureAnalysis.tsx (حذف النصوص من بطاقات الإحصائيات)
+- client/src/pages/Home.tsx (تحسين التنقل + منطق إزالة الجمل + toggle)
+- client/src/components/QuillEditor.tsx (CSS للعناوين)
+
+**Status: ✅ ALL UI/UX IMPROVEMENTS COMPLETED - APPLICATION WORKING PERFECTLY**
