@@ -23,6 +23,7 @@ export default function Home() {
   const [highlights, setHighlights] = useState<HighlightConfig[]>([]);
   const [editor, setEditor] = useState<any>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [isKeywordsHighlighted, setIsKeywordsHighlighted] = useState(false);
 
   const handleKeywordClick = (keyword: string) => {
     if (highlightedKeyword === keyword) {
@@ -62,11 +63,21 @@ export default function Home() {
     }
     
     setHighlights(newHighlights);
+    setIsKeywordsHighlighted(true);
   }, [primaryKeyword, subKeyword1, subKeyword2, subKeyword3, subKeyword4, companyName]);
 
   const handleClearAllHighlights = useCallback(() => {
     setHighlights([]);
+    setIsKeywordsHighlighted(false);
   }, []);
+
+  const handleToggleKeywordsHighlight = useCallback(() => {
+    if (isKeywordsHighlighted) {
+      handleClearAllHighlights();
+    } else {
+      handleHighlightAllKeywords();
+    }
+  }, [isKeywordsHighlighted, handleHighlightAllKeywords, handleClearAllHighlights]);
 
   const handleReplace = useCallback((searchText: string, replaceText: string, replaceAll: boolean) => {
     const normalizedSearch = normalizeArabicText(searchText);
@@ -160,6 +171,8 @@ export default function Home() {
                 onSubKeyword3Change={setSubKeyword3}
                 onSubKeyword4Change={setSubKeyword4}
                 onCompanyNameChange={setCompanyName}
+                onHighlightAll={handleToggleKeywordsHighlight}
+                isHighlighted={isKeywordsHighlighted}
               />
               
               <KeywordAnalysis

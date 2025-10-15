@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Highlighter } from 'lucide-react';
 
 interface RepeatedPhrasesProps {
   content: string;
@@ -132,6 +132,39 @@ export default function RepeatedPhrases({
     setTimeout(() => setCopiedPhrase(null), 2000);
   };
 
+  const getColorForPhrase = (phrase: string): string => {
+    const colors = [
+      'bg-purple-500/20 border-purple-500/40',
+      'bg-blue-500/20 border-blue-500/40',
+      'bg-green-500/20 border-green-500/40',
+      'bg-yellow-500/20 border-yellow-500/40',
+      'bg-orange-500/20 border-orange-500/40',
+      'bg-red-500/20 border-red-500/40',
+      'bg-pink-500/20 border-pink-500/40',
+      'bg-indigo-500/20 border-indigo-500/40',
+      'bg-teal-500/20 border-teal-500/40',
+      'bg-cyan-500/20 border-cyan-500/40',
+    ];
+    
+    let hash = 0;
+    for (let i = 0; i < phrase.length; i++) {
+      hash = phrase.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % colors.length;
+    return colors[index];
+  };
+
+  const handleHighlightGroup = (phrases: PhraseData[]) => {
+    if (phrases.length === 0) return;
+    
+    const firstPhrase = phrases[0].phrase;
+    if (highlightedPhrase === firstPhrase) {
+      onPhraseClick(null);
+    } else {
+      onPhraseClick(firstPhrase);
+    }
+  };
+
   const PhraseGroup = ({
     title,
     phrases,
@@ -146,17 +179,32 @@ export default function RepeatedPhrases({
     return (
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium">{title}</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-medium">{title}</CardTitle>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleHighlightGroup(phrases)}
+              className="h-7 px-2"
+            >
+              <Highlighter className="w-3 h-3 ml-1" />
+              تحديد الكل
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-2">
           {phrases.map((phraseData, idx) => {
             const isHighlighted = highlightedPhrase === phraseData.phrase;
 
+            const phraseColor = getColorForPhrase(phraseData.phrase);
+            
             return (
               <div
                 key={idx}
-                className={`flex items-center justify-between gap-2 p-2 rounded-md border cursor-pointer ${
-                  isHighlighted ? 'border-primary bg-primary/10' : 'border-border'
+                className={`flex items-center justify-between gap-2 p-2 rounded-md border cursor-pointer transition-all ${
+                  isHighlighted 
+                    ? 'border-primary bg-primary/10 ring-2 ring-primary/20' 
+                    : `${phraseColor}`
                 }`}
                 data-testid={`phrase-${testId}-${idx}`}
                 onClick={() =>
