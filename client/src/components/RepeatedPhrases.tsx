@@ -188,7 +188,7 @@ export default function RepeatedPhrases({
               className="h-7 px-2"
             >
               <Highlighter className="w-3 h-3 ml-1" />
-              تحديد الكل
+              تمييز الكل
             </Button>
           </div>
         </CardHeader>

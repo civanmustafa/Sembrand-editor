@@ -101,8 +101,6 @@ export default function QuillEditor({
           font-family: Tajawal, Cairo, "IBM Plex Sans Arabic", -apple-system, sans-serif;
           font-size: 16px;
           min-height: 500px;
-          max-height: 500px;
-          overflow-y: auto;
           direction: rtl;
           text-align: right;
         }
