@@ -82,6 +82,7 @@ export default function TinyEditor({
 
   return (
     <Editor
+      apiKey="gpl"
       onInit={(evt, editor) => {
         editorRef.current = editor;
         if (onEditorReady) {
@@ -91,7 +92,6 @@ export default function TinyEditor({
       value={value}
       onEditorChange={handleEditorChange}
       init={{
-        license_key: 'gpl',
         height: 500,
         menubar: false,
         plugins: [
