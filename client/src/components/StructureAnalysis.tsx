@@ -396,7 +396,6 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
         <CardContent className="pt-6 grid grid-cols-3 gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 justify-end">
-              <p className="text-sm text-muted-foreground">عدد الفقرات</p>
               <AlignLeft className="w-4 h-4 text-primary" />
             </div>
             <p className="text-2xl font-bold text-right" data-testid="stat-paragraphs">
@@ -405,7 +404,6 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2 justify-end">
-              <p className="text-sm text-muted-foreground">عدد العناوين</p>
               <Heading className="w-4 h-4 text-primary" />
             </div>
             <p className="text-2xl font-bold text-right" data-testid="stat-headings">
@@ -414,7 +412,6 @@ export default function StructureAnalysis({ content, onViolationClick, highlight
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2 justify-end">
-              <p className="text-sm text-muted-foreground">عدد القوائم</p>
               <List className="w-4 h-4 text-primary" />
             </div>
             <p className="text-2xl font-bold text-right" data-testid="stat-lists">

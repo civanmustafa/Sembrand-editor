@@ -172,6 +172,7 @@ export default function RepeatedPhrases({
 
   const handleCopy = async (phrase: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     await navigator.clipboard.writeText(phrase);
     setCopiedPhrase(phrase);
     setTimeout(() => setCopiedPhrase(null), 2000);
@@ -255,6 +256,7 @@ export default function RepeatedPhrases({
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between cursor-pointer" onClick={() => toggleSection(sectionId)}>
               <div className="flex items-center gap-2">
+                {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 <Button
                   size="icon"
                   variant="ghost"
@@ -265,10 +267,9 @@ export default function RepeatedPhrases({
                 >
                   <Highlighter className={`w-3.5 h-3.5 ${allHighlighted ? 'text-primary' : ''}`} />
                 </Button>
-                <CardTitle className="text-sm font-medium">{title}</CardTitle>
                 <Badge variant="outline">{phrases.length}</Badge>
               </div>
-              {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              <CardTitle className="text-sm font-medium">{title}</CardTitle>
             </div>
             <div className="mt-2 space-y-1">
               <Progress value={progressValue} className="h-1.5" />
@@ -328,7 +329,6 @@ export default function RepeatedPhrases({
         <CardContent className="pt-6 grid grid-cols-2 gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 justify-end">
-              <p className="text-sm text-muted-foreground">الجمل المكررة</p>
               <Repeat className="w-4 h-4 text-primary" />
             </div>
             <p className="text-2xl font-bold text-right" data-testid="stat-repeated-phrases">
@@ -337,7 +337,6 @@ export default function RepeatedPhrases({
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2 justify-end">
-              <p className="text-sm text-muted-foreground">إجمالي التكرار</p>
               <ListOrdered className="w-4 h-4 text-primary" />
             </div>
             <p className="text-2xl font-bold text-right" data-testid="stat-total-repetitions">
@@ -346,7 +345,6 @@ export default function RepeatedPhrases({
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2 justify-end">
-              <p className="text-sm text-muted-foreground">الكلمات الفريدة</p>
               <Hash className="w-4 h-4 text-primary" />
             </div>
             <p className="text-2xl font-bold text-right" data-testid="stat-unique-words">
@@ -355,7 +353,6 @@ export default function RepeatedPhrases({
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2 justify-end">
-              <p className="text-sm text-muted-foreground">إجمالي الكلمات</p>
               <FileText className="w-4 h-4 text-primary" />
             </div>
             <p className="text-2xl font-bold text-right" data-testid="stat-total-words">

@@ -275,6 +275,47 @@ export default function QuillEditor({
           direction: rtl;
           text-align: right;
         }
+        .quill-editor-wrapper .ql-editor h1 {
+          font-size: 2em;
+          font-weight: 700;
+          margin-top: 0.67em;
+          margin-bottom: 0.67em;
+          line-height: 1.3;
+          color: hsl(var(--foreground));
+          border-bottom: 2px solid hsl(var(--border));
+          padding-bottom: 0.3em;
+        }
+        .quill-editor-wrapper .ql-editor h2 {
+          font-size: 1.75em;
+          font-weight: 700;
+          margin-top: 0.83em;
+          margin-bottom: 0.83em;
+          line-height: 1.3;
+          color: hsl(var(--foreground));
+          border-bottom: 1px solid hsl(var(--border));
+          padding-bottom: 0.25em;
+        }
+        .quill-editor-wrapper .ql-editor h3 {
+          font-size: 1.5em;
+          font-weight: 600;
+          margin-top: 1em;
+          margin-bottom: 1em;
+          line-height: 1.3;
+          color: hsl(var(--foreground));
+        }
+        .quill-editor-wrapper .ql-editor h4 {
+          font-size: 1.25em;
+          font-weight: 600;
+          margin-top: 1.33em;
+          margin-bottom: 1.33em;
+          line-height: 1.3;
+          color: hsl(var(--foreground));
+        }
+        .quill-editor-wrapper .ql-editor p {
+          margin-top: 0.5em;
+          margin-bottom: 0.5em;
+          line-height: 1.6;
+        }
         .quill-editor-wrapper #custom-toolbar {
           direction: rtl;
           display: flex;

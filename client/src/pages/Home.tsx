@@ -98,24 +98,29 @@ export default function Home() {
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
     
-    if (phrase && editor) {
+    if (phrase && editor && newPhrases.has(phrase)) {
       setTimeout(() => {
         const normalizedContent = content.toLowerCase();
         const normalizedPhrase = phrase.toLowerCase();
         const index = normalizedContent.indexOf(normalizedPhrase);
         
-        if (index !== -1 && editor.scroll) {
-          const totalLength = content.length;
-          const scrollPercentage = index / totalLength;
-          const editorHeight = editor.scroll.domNode.scrollHeight;
-          const scrollPosition = scrollPercentage * editorHeight;
-          editor.scroll.domNode.scrollTop = scrollPosition;
+        if (index !== -1) {
+          // نقل المؤشر إلى بداية أول جملة
+          editor.setSelection(index, 0);
         }
       }, 100);
     }
   }, [content, editor, highlightedPhrases, getColorForPhrase]);
 
   const handleViolationClick = useCallback((violations: string[] | null, criteriaTitle: string, shouldScroll: boolean = true, moveCursorOnly: boolean = false) => {
+    // Toggle: if clicking on the same criteria that's already highlighted, clear it
+    if (highlightedCriteria === criteriaTitle) {
+      setHighlights([]);
+      setHighlightedViolation(null);
+      setHighlightedCriteria(null);
+      return;
+    }
+    
     if (violations && violations.length > 0) {
       // Create highlights for all violations
       const violationHighlights: HighlightConfig[] = violations.map(v => ({
@@ -161,7 +166,7 @@ export default function Home() {
       setHighlightedKeyword(null);
       setHighlightedPhrases(new Set());
     }
-  }, [content, editor]);
+  }, [content, editor, highlightedCriteria]);
 
   const handleHighlightAllKeywords = useCallback(() => {
     const newHighlights: HighlightConfig[] = [];
@@ -287,6 +292,73 @@ export default function Home() {
       }
     }
   }, [content]);
+
+  // Remove phrases from highlights when they are no longer repeated
+  useEffect(() => {
+    if (highlightedPhrases.size === 0) return;
+    
+    // Get current repeated phrases
+    const normalizedWords = normalizeArabicText(content)
+      .replace(/[^\u0600-\u06FF\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .split(' ')
+      .filter(w => w.length > 0);
+
+    const extractPhrases = (n: number): Set<string> => {
+      const phrasesMap = new Map<string, number>();
+      
+      for (let i = 0; i <= normalizedWords.length - n; i++) {
+        const phrase = normalizedWords.slice(i, i + n).join(' ');
+        phrasesMap.set(phrase, (phrasesMap.get(phrase) || 0) + 1);
+      }
+
+      const repeated = new Set<string>();
+      phrasesMap.forEach((count, phrase) => {
+        if (count > 1) {
+          repeated.add(phrase);
+        }
+      });
+      return repeated;
+    };
+
+    const allRepeatedPhrases = new Set([
+      ...Array.from(extractPhrases(2)),
+      ...Array.from(extractPhrases(3)),
+      ...Array.from(extractPhrases(4)),
+      ...Array.from(extractPhrases(5)),
+      ...Array.from(extractPhrases(6)),
+      ...Array.from(extractPhrases(7)),
+      ...Array.from(extractPhrases(8)),
+    ]);
+
+    // Check if any highlighted phrase is no longer repeated
+    const newHighlightedPhrases = new Set(highlightedPhrases);
+    let changed = false;
+    
+    highlightedPhrases.forEach(phrase => {
+      const normalized = normalizeArabicText(phrase)
+        .replace(/[^\u0600-\u06FF\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      if (!allRepeatedPhrases.has(normalized)) {
+        newHighlightedPhrases.delete(phrase);
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      setHighlightedPhrases(newHighlightedPhrases);
+      
+      const phraseHighlights: HighlightConfig[] = Array.from(newHighlightedPhrases).map(p => ({
+        text: p,
+        color: getColorForPhrase(p),
+        type: 'phrase' as const
+      }));
+      
+      setHighlights(phraseHighlights);
+    }
+  }, [content, highlightedPhrases, getColorForPhrase]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
