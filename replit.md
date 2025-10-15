@@ -12,27 +12,43 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### October 15, 2025 - UI/UX Enhancements
+### October 15, 2025 - Advanced UI/UX Enhancements
 
-**Repeated Phrases Tab Improvements**
-- Reorganized phrase display: icons moved to the left, text centered for better RTL layout
-- Added persistent color coding for each phrase throughout the editor (10 distinct colors)
-- Implemented collapsible phrase categories (2-8 word phrases) with expanded default state
-- Added "Highlight All" button with icon to show all repeated phrases at once
+**Category-Level Highlighting System**
+- Added highlight toggle icons to each phrase category in Repeated Phrases tab
+- Eye/EyeOff icons on the right side enable/disable highlighting for all phrases in category
+- Removed global "Highlight All" button in favor of category-specific controls
+- Maintained persistent color coding (10 distinct colors) for each phrase across editor
 
-**Information Dashboards**
-- Structure Tab: Added statistics dashboard with gradient background showing paragraph count, heading count, and list count with meaningful icons (FileText, Heading, List)
-- Phrases Tab: Enhanced statistics display with gradient background showing total words, unique words, and repeated phrases count with icons (Hash, ListOrdered, Repeat, FileText)
+**RTL Editor Improvements**
+- Completely redesigned toolbar alignment from left-to-right to right-to-left
+- Integrated utility buttons (Clear Highlights, Remove Empty Lines) directly into editor toolbar
+- Custom formatting buttons now properly aligned for Arabic content flow
+- All editor controls follow consistent RTL visual hierarchy
 
-**Criteria Display Enhancement**
-- Replaced inline descriptions with info icon tooltips for cleaner UI
-- Tooltips provide detailed explanations on hover
-- Improved visual hierarchy with better spacing
+**Progress Indicators & Metrics**
+- Added progress bars under each category showing violation/duplicate counts
+- Structure criteria cards display violationCount/totalCount ratios
+- Repeated phrases categories show duplicate count with visual progress feedback
+- Progress bars use inverse calculation (violations reduce completion percentage)
 
-**Editor Toolbar Controls**
-- Added clear highlights button (Eraser icon) to remove all highlighting
-- Added remove empty lines button (RemoveFormatting icon) to clean up excessive whitespace while preserving rich text formatting
-- Both buttons use Quill delta operations to maintain text formatting integrity
+**Statistics Dashboard Redesign**
+- Removed "لوحة المعلومات" label for cleaner, more compact design
+- Icons positioned on right side with RTL-aligned text (AlignLeft, Heading, List)
+- Grid layout optimized for three-column statistics display
+- Gradient background maintained for visual distinction
+
+**Criteria Card Enhancements**
+- Reduced card padding from p-6 to p-4 for more compact vertical layout
+- Font sizes adjusted: title (text-lg to text-base), details (text-sm to text-xs)
+- Added break-words to prevent text overflow in metrics
+- Click-to-navigate functionality for violation criteria with auto-scroll to first occurrence
+
+**Interactive Violation Navigation**
+- Criteria titles become clickable for violation status items
+- Clicking highlights and scrolls to first violation instance in editor
+- Visual feedback with ring-2 ring-primary on active criteria
+- Seamless integration with existing handleViolationClick mechanism
 
 ## System Architecture
 
