@@ -12,6 +12,32 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 15, 2025 - Latest UI/UX Enhancements
+
+**Selection Statistics**
+- Added word count and character count display for selected text in editor toolbar
+- Real-time updates show statistics as user selects text
+- Empty state message when no text is selected
+
+**Multi-Violation Highlighting System**
+- Fixed violation highlighting to mark ALL violating paragraphs instead of just first one
+- System now supports highlighting multiple violations simultaneously
+- Enhanced handleViolationClick to accept arrays of violations
+- Improved user experience when clicking on criteria with multiple violations
+
+**Category-Based Progress Indicators**
+- Created new CategoryHeader component for Structure & Content tab
+- Progress bars moved from individual criteria cards to category headers
+- Category headers show aggregate violation counts across all criteria in category
+- Visual design: gradient background with right-aligned emoji and RTL text layout
+- Three main categories: "معايير العناوين والتسلسل", "معايير الجودة اللغوية والنحوية", "معايير الخاتمة"
+
+**Repeated Phrases Progress Enhancement**
+- Modified progress calculation to use total repetition counts instead of phrase counts
+- Progress bars now show: "{highlighted_repetitions} من {total_repetitions} تكرار مميز"
+- More accurate representation of highlighted content volume
+- Helps users understand duplicate content impact
+
 ### October 15, 2025 - Advanced UI/UX Enhancements
 
 **Category-Level Highlighting System**
@@ -25,12 +51,6 @@ Preferred communication style: Simple, everyday language.
 - Integrated utility buttons (Clear Highlights, Remove Empty Lines) directly into editor toolbar
 - Custom formatting buttons now properly aligned for Arabic content flow
 - All editor controls follow consistent RTL visual hierarchy
-
-**Progress Indicators & Metrics**
-- Added progress bars under each category showing violation/duplicate counts
-- Structure criteria cards display violationCount/totalCount ratios
-- Repeated phrases categories show duplicate count with visual progress feedback
-- Progress bars use inverse calculation (violations reduce completion percentage)
 
 **Statistics Dashboard Redesign**
 - Removed "لوحة المعلومات" label for cleaner, more compact design
