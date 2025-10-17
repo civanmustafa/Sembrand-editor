@@ -29,14 +29,22 @@ export default function Home() {
   const [isKeywordsHighlighted, setIsKeywordsHighlighted] = useState(false);
 
   const handleKeywordClick = (keyword: string, moveCursorOnly: boolean = false) => {
+    // Clear other highlight types but keep keywords highlighted state
     setHighlightedPhrases(new Set());
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
-    setIsKeywordsHighlighted(false);
+    
+    // Toggle individual keyword highlight
     if (highlightedKeyword === keyword) {
       setHighlightedKeyword(null);
+      setHighlights([]);
     } else {
       setHighlightedKeyword(keyword);
+      setHighlights([{
+        text: keyword,
+        color: 'blue',
+        type: 'keyword' as const
+      }]);
       
       // تحريك المؤشر والسكرول إلى أول ظهور للكلمة
       if (editor && keyword) {
@@ -98,7 +106,6 @@ export default function Home() {
     setHighlightedKeyword(null);
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
-    setIsKeywordsHighlighted(false);
     
     if (phrase && editor && newPhrases.has(phrase)) {
       setTimeout(() => {
@@ -137,7 +144,6 @@ export default function Home() {
       setHighlightedCriteria(criteriaTitle);
       setHighlightedKeyword(null);
       setHighlightedPhrases(new Set());
-      setIsKeywordsHighlighted(false);
       
       if (editor) {
         setTimeout(() => {
@@ -260,7 +266,6 @@ export default function Home() {
     setHighlightedPhrases(new Set());
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
-    setIsKeywordsHighlighted(false);
   }, [content, getColorForPhrase]);
 
   const handleToggleKeywordsHighlight = useCallback(() => {

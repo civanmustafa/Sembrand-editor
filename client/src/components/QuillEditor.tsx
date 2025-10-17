@@ -7,7 +7,7 @@ import { EraserIcon, RemoveFormatting } from 'lucide-react';
 export interface HighlightConfig {
   text: string;
   color: 'green' | 'orange' | 'red' | 'purple' | 'blue' | 'yellow' | string;
-  type: 'primary' | 'secondary' | 'company' | 'phrase' | 'violation';
+  type: 'primary' | 'secondary' | 'company' | 'phrase' | 'violation' | 'keyword';
 }
 
 interface QuillEditorProps {
@@ -58,6 +58,9 @@ export default function QuillEditor({
     const editor = quillRef.current.getEditor();
     const editorContainer = editor.root;
     
+    // Set flag to prevent onChange from firing during highlight application
+    isApplyingHighlights.current = true;
+    
     // Store current text content before applying highlights
     previousTextContent.current = editorContainer.textContent || '';
     
@@ -75,6 +78,8 @@ export default function QuillEditor({
     });
     
     if (!highlightedKeyword && highlights.length === 0) {
+      // Reset flag before returning
+      setTimeout(() => { isApplyingHighlights.current = false; }, 100);
       return;
     }
     
@@ -207,6 +212,9 @@ export default function QuillEditor({
     if (highlightedKeyword) {
       applyHighlight(highlightedKeyword, `${colorMap.blue}66`, colorMap.blue);
     }
+    
+    // Reset flag after highlights are applied
+    setTimeout(() => { isApplyingHighlights.current = false; }, 100);
   }, [highlightedKeyword, highlights]);
 
   const handleRemoveEmptyLines = () => {
@@ -264,7 +272,14 @@ export default function QuillEditor({
     'link', 'code-block'
   ];
 
+  const isApplyingHighlights = useRef(false);
+
   const handleChange = (newValue: string) => {
+    // Don't trigger onChange while we're applying highlights
+    if (isApplyingHighlights.current) {
+      return;
+    }
+
     // Get current text content from editor
     if (quillRef.current) {
       const editor = quillRef.current.getEditor();
