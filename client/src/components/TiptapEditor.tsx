@@ -317,46 +317,48 @@ export default function TiptapEditor({
       editor.commands.setContent(value);
       previousValue.current = value;
       
-      // Only restore cursor position if we're NOT applying highlights
-      // When applying highlights, we want to keep the cursor where it is
-      if (!isApplyingHighlights.current) {
-        setTimeout(() => {
-          try {
-            const docSize = editor.state.doc.content.size;
-            
-            // Handle empty document case
-            if (docSize === 0) {
-              editor.commands.setTextSelection({ from: 0, to: 0 });
-              return;
-            }
-            
-            // Clamp both endpoints to valid ProseMirror range [0, docSize]
-            let clampedFrom = Math.max(0, Math.min(savedCursorPos.from, docSize));
-            let clampedTo = Math.max(0, Math.min(savedCursorPos.to, docSize));
-            
-            // Ensure from <= to (preserve selection direction)
-            if (clampedFrom > clampedTo) {
-              [clampedFrom, clampedTo] = [clampedTo, clampedFrom];
-            }
-            
-            // Restore selection with clamped positions
-            editor.commands.setTextSelection({ 
-              from: clampedFrom, 
-              to: clampedTo 
-            });
-          } catch (e) {
-            // If restoration fails, do nothing - keep cursor where it is
-            // Don't call focus() as it may move cursor to end
+      // Always restore cursor position to prevent it from jumping to the end
+      // ProseMirror resets selection to end after setContent, so we must restore it
+      setTimeout(() => {
+        try {
+          const docSize = editor.state.doc.content.size;
+          
+          // Handle empty document case
+          if (docSize === 0) {
+            editor.commands.setTextSelection({ from: 0, to: 0 });
+            return;
           }
-        }, 10);
-      }
-      
-      // Always restore scroll position to prevent unwanted scrolling
-      requestAnimationFrame(() => {
-        if (scrollElement) {
-          scrollElement.scrollTop = savedScrollTop;
+          
+          // Clamp both endpoints to valid ProseMirror range [0, docSize]
+          let clampedFrom = Math.max(0, Math.min(savedCursorPos.from, docSize));
+          let clampedTo = Math.max(0, Math.min(savedCursorPos.to, docSize));
+          
+          // Ensure from <= to (preserve selection direction)
+          if (clampedFrom > clampedTo) {
+            [clampedFrom, clampedTo] = [clampedTo, clampedFrom];
+          }
+          
+          // Restore selection with clamped positions
+          editor.commands.setTextSelection({ 
+            from: clampedFrom, 
+            to: clampedTo 
+          });
+          
+          // Restore scroll position to prevent unwanted scrolling
+          requestAnimationFrame(() => {
+            if (scrollElement) {
+              scrollElement.scrollTop = savedScrollTop;
+            }
+          });
+        } catch (e) {
+          // If restoration fails, at least try to restore scroll position
+          requestAnimationFrame(() => {
+            if (scrollElement) {
+              scrollElement.scrollTop = savedScrollTop;
+            }
+          });
         }
-      });
+      }, 10);
     }
   }, [value, editor]);
 
