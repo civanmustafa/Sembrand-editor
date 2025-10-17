@@ -659,3 +659,75 @@ editor.commands.setTextSelection({ from: clampedFrom, to: clampedTo });
 
 **Next Steps:**
 The migration is complete! You can now start using and building upon your Arabic SEO content analyzer application.
+
+## إصلاح مشكلة السكرول التلقائي ونقل المؤشر - 17 أكتوبر 2025
+
+[x] 146. تحليل مشكلة السكرول والمؤشر في TiptapEditor - وجدنا أن useEffect يحاول استعادة موقع المؤشر بعد setContent
+[x] 147. المحاولة الأولى: إضافة شرط لعدم استعادة الموقع عند التمييز - فشلت لأن ProseMirror يعيد المؤشر للنهاية
+[x] 148. المراجعة المعمارية الأولى: كشفت أن تخطي الاستعادة يسبب القفز للنهاية
+[x] 149. الحل النهائي: استعادة الموقع دائماً بعد setContent بغض النظر عن isApplyingHighlights
+[x] 150. المراجعة المعمارية النهائية: تمت الموافقة - الحل يعمل بشكل صحيح
+
+**التفاصيل الفنية:**
+
+**المشكلة الأصلية:**
+- عندما يتم تطبيق التمييز، كان المؤشر يقفز تلقائياً إلى نهاية النص
+- كان يحدث سكرول غير مرغوب فيه عند تطبيق التمييز
+- المستخدم لا يستطيع الاستمرار بالكتابة في موقعه الحالي
+
+**السبب الجذري:**
+- `editor.commands.setContent(value)` في ProseMirror يعيد تعيين موقع المؤشر إلى نهاية المستند تلقائياً
+- كان هناك محاولة لاستعادة الموقع، لكن مع شرط يتخطى الاستعادة عند التمييز
+- هذا التخطي كان يترك المؤشر في النهاية
+
+**الحل النهائي:**
+```javascript
+// في useEffect الخاص بتحديث المحتوى:
+useEffect(() => {
+  if (editor && value !== editor.getHTML()) {
+    // 1. حفظ السكرول والمؤشر قبل أي تحديث
+    const scrollElement = editor.view.dom.closest('.ProseMirror');
+    const savedScrollTop = scrollElement?.scrollTop || 0;
+    const { from, to } = editor.state.selection;
+    const savedCursorPos = { from, to };
+    
+    // 2. تحديث المحتوى (يعيد المؤشر للنهاية)
+    editor.commands.setContent(value);
+    
+    // 3. استعادة الموقع دائماً بعد 10ms
+    setTimeout(() => {
+      // clamp الموقع للتأكد من أنه ضمن النطاق الصالح
+      let clampedFrom = Math.max(0, Math.min(savedCursorPos.from, docSize));
+      let clampedTo = Math.max(0, Math.min(savedCursorPos.to, docSize));
+      
+      editor.commands.setTextSelection({ from: clampedFrom, to: clampedTo });
+      
+      // 4. استعادة السكرول
+      requestAnimationFrame(() => {
+        scrollElement.scrollTop = savedScrollTop;
+      });
+    }, 10);
+  }
+}, [value, editor]);
+```
+
+**النقاط الرئيسية:**
+1. ✅ استعادة الموقع تحدث دائماً بعد setContent (لا شروط)
+2. ✅ حفظ السكرول قبل أي تحديث
+3. ✅ استخدام clamping للتأكد من أن الموقع ضمن النطاق الصالح للمستند الجديد
+4. ✅ استعادة السكرول داخل requestAnimationFrame لضمان التنسيق الصحيح
+5. ✅ حتى عند فشل استعادة الموقع، يتم استعادة السكرول على الأقل
+
+**الملفات المعدلة:**
+- client/src/components/TiptapEditor.tsx (تحسين منطق useEffect لتحديث المحتوى)
+
+**موافقة المعماري:**
+> "Pass: The updated effect now consistently restores both the cursor selection and scroll position after every setContent call, preventing ProseMirror from jumping the caret to the document end even during highlight-only updates."
+
+**النتيجة:**
+- ✅ المؤشر الآن يبقى في مكانه عند تطبيق التمييز
+- ✅ لا يحدث سكرول تلقائي غير مرغوب
+- ✅ المستخدم يمكنه الكتابة بشكل طبيعي دون قفزات في المؤشر
+- ✅ يعمل مع جميع أنواع التمييز: الكلمات المفتاحية، المعايير المخالفة، والجمل المكررة
+
+**Status: ✅ CURSOR JUMP ISSUE COMPLETELY FIXED - ARCHITECT APPROVED - APPLICATION STABLE**
