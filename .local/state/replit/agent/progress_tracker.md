@@ -365,6 +365,49 @@ The migration is complete! You can now start building and adding new features to
 
 **Status: ✅ TOOLBAR CLEANUP COMPLETED - BUTTONS REMOVED - HIGHLIGHTING WORKING PERFECTLY**
 
+## التحديثات الجديدة - 17 أكتوبر 2025 (الجلسة الحالية)
+
+[x] 85. تحسين لون النص العادي في المحرر للوضع المظلم - جعله hsl(0 0% 95%) بدلاً من الاعتماد على --foreground
+[x] 86. إضافة وظيفة الانتقال إلى أول مخالفة عند النقر على معيار المخالفة
+[x] 87. إضافة prop scrollToText إلى TiptapEditor و ContentEditor
+[x] 88. إضافة useEffect في TiptapEditor للبحث عن النص والانتقال إليه دون إلغاء التمييز
+[x] 89. تحديث handleViolationClick في Home.tsx لضبط scrollToText عند النقر على معيار
+[x] 90. اختبار التطبيق والتأكد من عمل التعديلات بشكل صحيح
+[x] 91. مراجعة التعديلات مع المعماري - تمت الموافقة بنجاح
+
+**التفاصيل الفنية:**
+
+1. **تحسين لون النص في الوضع المظلم:**
+   - أضفت CSS خاص للوضع المظلم في TiptapEditor.tsx:
+     ```css
+     .dark .tiptap-editor-wrapper .ProseMirror p,
+     .dark .tiptap-editor-wrapper .ProseMirror,
+     .dark .tiptap-editor-wrapper .ProseMirror li {
+       color: hsl(0 0% 95%);
+     }
+     ```
+   - هذا يجعل النص العادي (الفقرات والقوائم) أكثر وضوحاً على الخلفية السوداء
+
+2. **وظيفة الانتقال إلى أول مخالفة:**
+   - أضفت prop scrollToText إلى TiptapEditor interface
+   - أضفت useEffect في TiptapEditor يبحث عن النص باستخدام regex مع دعم الأحرف العربية المتشابهة
+   - يستخدم editor.chain().focus().setTextSelection(matchPos).run() لتحريك المؤشر
+   - يستخدم scrollIntoView({ behavior: 'smooth', block: 'center' }) للتمرير إلى الموقع
+   - في Home.tsx، يتم ضبط scrollToText عند النقر على معيار، ثم إعادة تعيينه بعد 500ms
+
+**الملفات المعدلة:**
+- client/src/components/TiptapEditor.tsx (تحسين CSS + إضافة scrollToText prop + useEffect للتمرير)
+- client/src/components/ContentEditor.tsx (إضافة scrollToText prop وتمريره إلى TiptapEditor)
+- client/src/pages/Home.tsx (إضافة scrollToText state + تحديث handleViolationClick)
+
+**نتائج المراجعة المعمارية:**
+- ✅ تمت الموافقة - التعديلات تعمل بشكل صحيح دون أي مشاكل
+- ✅ لا توجد مشاكل في الأداء - regex يعمل مرة واحدة فقط عند الحاجة
+- ✅ التمييز يبقى ثابتاً أثناء التمرير - لا يتم إلغاؤه
+- ✅ التوافق مع بقية التطبيق ممتاز
+
+**Status: ✅ ALL NEW FEATURES IMPLEMENTED AND APPROVED - TEXT COLOR IMPROVED - AUTO-SCROLL TO VIOLATION WORKING PERFECTLY**
+
 ## Current Session - October 17, 2025 (Final Migration Verification)
 
 [x] 81. Reinstalled cross-env package (was missing from node_modules)
