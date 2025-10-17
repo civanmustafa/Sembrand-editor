@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import ContentEditor from '@/components/ContentEditor';
 import KeywordInput from '@/components/KeywordInput';
 import KeywordAnalysis from '@/components/KeywordAnalysis';
@@ -27,8 +27,14 @@ export default function Home() {
   const [editor, setEditor] = useState<any>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isKeywordsHighlighted, setIsKeywordsHighlighted] = useState(false);
+  
+  // Ref to prevent phrase cleanup effect from running when we just applied highlights
+  const isApplyingHighlights = useRef(false);
 
   const handleKeywordClick = (keyword: string, moveCursorOnly: boolean = false) => {
+    // Set flag to prevent phrase cleanup effect from running
+    isApplyingHighlights.current = true;
+    
     // Clear other highlight types but keep keywords highlighted state
     setHighlightedPhrases(new Set());
     setHighlightedViolation(null);
@@ -45,6 +51,11 @@ export default function Home() {
         color: 'blue',
         type: 'keyword' as const
       }]);
+      
+      // Reset flag after a short delay
+      setTimeout(() => {
+        isApplyingHighlights.current = false;
+      }, 300);
       
       // تحريك المؤشر والسكرول إلى أول ظهور للكلمة
       if (editor && keyword) {
@@ -87,6 +98,9 @@ export default function Home() {
       return;
     }
 
+    // Set flag to prevent phrase cleanup effect from running
+    isApplyingHighlights.current = true;
+
     const newPhrases = new Set(highlightedPhrases);
     if (newPhrases.has(phrase)) {
       newPhrases.delete(phrase);
@@ -106,6 +120,11 @@ export default function Home() {
     setHighlightedKeyword(null);
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
+    
+    // Reset flag after a short delay to allow highlights to be applied
+    setTimeout(() => {
+      isApplyingHighlights.current = false;
+    }, 300);
     
     if (phrase && editor && newPhrases.has(phrase)) {
       setTimeout(() => {
@@ -131,6 +150,9 @@ export default function Home() {
     }
     
     if (violations && violations.length > 0) {
+      // Set flag to prevent phrase cleanup effect from running
+      isApplyingHighlights.current = true;
+      
       // Create highlights for all violations
       const violationHighlights: HighlightConfig[] = violations.map(v => ({
         text: v,
@@ -144,6 +166,11 @@ export default function Home() {
       setHighlightedCriteria(criteriaTitle);
       setHighlightedKeyword(null);
       setHighlightedPhrases(new Set());
+      
+      // Reset flag after a short delay
+      setTimeout(() => {
+        isApplyingHighlights.current = false;
+      }, 300);
       
       if (editor) {
         setTimeout(() => {
@@ -178,6 +205,9 @@ export default function Home() {
   }, [content, editor, highlightedCriteria]);
 
   const handleHighlightAllKeywords = useCallback(() => {
+    // Set flag to prevent phrase cleanup effect from running
+    isApplyingHighlights.current = true;
+    
     const newHighlights: HighlightConfig[] = [];
     
     if (primaryKeyword) {
@@ -212,6 +242,11 @@ export default function Home() {
     setHighlightedPhrases(new Set());
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
+    
+    // Reset flag after a short delay
+    setTimeout(() => {
+      isApplyingHighlights.current = false;
+    }, 300);
   }, [primaryKeyword, subKeyword1, subKeyword2, subKeyword3, subKeyword4, companyName]);
 
   const handleClearAllHighlights = useCallback(() => {
@@ -308,6 +343,9 @@ export default function Home() {
 
   // Remove phrases from highlights when they are no longer repeated
   useEffect(() => {
+    // Don't run this effect if we're currently applying highlights
+    if (isApplyingHighlights.current) return;
+    
     if (highlightedPhrases.size === 0) return;
     
     // Get current repeated phrases

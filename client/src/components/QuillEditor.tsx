@@ -30,6 +30,7 @@ export default function QuillEditor({
   const quillRef = useRef<ReactQuill>(null);
   const [selectionStats, setSelectionStats] = useState({ words: 0, chars: 0 });
   const previousTextContent = useRef<string>('');
+  const previousValue = useRef<string>(value);
 
   useEffect(() => {
     if (quillRef.current) {
@@ -51,6 +52,11 @@ export default function QuillEditor({
       });
     }
   }, [onEditorReady]);
+
+  // Update previousValue when value prop changes from parent
+  useEffect(() => {
+    previousValue.current = value;
+  }, [value]);
 
   // Store current highlights config for MutationObserver
   const currentHighlightsConfig = useRef<{keyword: string | null, highlights: HighlightConfig[]}>({
@@ -303,16 +309,26 @@ export default function QuillEditor({
       const currentHighlightCount = (currentHTML.match(/class="highlight-mark"/g) || []).length;
       const hasHighlights = currentHighlightCount > 0;
       
+      // Strip HTML tags from both values to compare text content only
+      const stripHTML = (html: string) => {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || '';
+      };
+      
+      const newTextContent = stripHTML(newValue);
+      const previousTextContent = stripHTML(previousValue.current);
+      
       // Only trigger onChange if the actual text content changed
       // If we have highlights active, ignore changes that only affect highlight spans
-      if (hasHighlights && currentTextContent === previousTextContent.current) {
+      if (hasHighlights && newTextContent === previousTextContent) {
         // Text didn't change, only highlights were added/removed - ignore
         return;
       }
       
       // Text actually changed, update it
-      if (currentTextContent !== previousTextContent.current) {
-        previousTextContent.current = currentTextContent;
+      if (newTextContent !== previousTextContent) {
+        previousValue.current = newValue;
         onChange(newValue);
       }
     }
