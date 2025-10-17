@@ -109,3 +109,36 @@ All migration items have been successfully completed:
 - client/src/components/QuillEditor.tsx (إضافة previousTextContent ref ومنطق المقارنة في handleChange)
 
 **Status: ✅ HIGHLIGHT PERSISTENCE ISSUE FIXED - ARCHITECT APPROVED - APPLICATION WORKING PERFECTLY**
+
+## التحديثات الجديدة - 17 أكتوبر 2025 (الجلسة الحالية)
+
+[x] 46. إصلاح عرض القوائم النقطية والرقمية في المحرر - إضافة padding للقوائم حتى لا يظهر النص فوق النقاط
+[x] 47. إصلاح مشكلة إلغاء التمييز عند النقر في المحرر - جعل التمييز ثابتاً بإضافة setIsKeywordsHighlighted(false) في جميع الدوال
+[x] 48. تعديل تنسيق الإحصائيات في CategoryHeader - تغيير من "X من Y متوافق • Z مخالفة" إلى "من X معايير: Y مخالف - Z متوافق"
+[x] 49. اختبار التطبيق والتأكد من عمل جميع التعديلات بشكل صحيح
+
+**التفاصيل الفنية:**
+
+1. **إصلاح القوائم النقطية والرقمية:**
+   - أضفت CSS للقوائم (ol, ul) مع padding-right: 2em
+   - أضفت CSS لعناصر القائمة (li) مع padding-right: 0.5em
+   - أضفت margin للقوائم لفصلها عن المحتوى
+
+2. **إصلاح مشكلة التمييز:**
+   - أضفت setIsKeywordsHighlighted(false) في handleKeywordClick
+   - أضفت setIsKeywordsHighlighted(false) في handlePhraseClick
+   - أضفت setIsKeywordsHighlighted(false) في handleViolationClick
+   - أضفت setIsKeywordsHighlighted(false) في handleHighlightAllPhrases
+   - أضفت تنظيف الحالات الأخرى في handleHighlightAllKeywords
+   - الآن التمييز يبقى ثابتاً ولا يُلغى إلا عند تعديل النص أو النقر على زر "تمييز الكل" مرة أخرى
+
+3. **تعديل CategoryHeader:**
+   - غيرت التنسيق من: "{achievedCount} من {totalCount} متوافق • {violationCount} مخالفة"
+   - إلى: "من {totalCount} معايير: {violationCount} مخالف - {achievedCount} متوافق"
+
+**الملفات المعدلة:**
+- client/src/components/QuillEditor.tsx (CSS للقوائم النقطية والرقمية)
+- client/src/pages/Home.tsx (إصلاح منطق التمييز)
+- client/src/components/CategoryHeader.tsx (تعديل التنسيق)
+
+**Status: ✅ ALL NEW FEATURES IMPLEMENTED SUCCESSFULLY - APPLICATION WORKING PERFECTLY**

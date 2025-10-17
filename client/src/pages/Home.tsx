@@ -32,6 +32,7 @@ export default function Home() {
     setHighlightedPhrases(new Set());
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
+    setIsKeywordsHighlighted(false);
     if (highlightedKeyword === keyword) {
       setHighlightedKeyword(null);
     } else {
@@ -97,6 +98,7 @@ export default function Home() {
     setHighlightedKeyword(null);
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
+    setIsKeywordsHighlighted(false);
     
     if (phrase && editor && newPhrases.has(phrase)) {
       setTimeout(() => {
@@ -135,6 +137,7 @@ export default function Home() {
       setHighlightedCriteria(criteriaTitle);
       setHighlightedKeyword(null);
       setHighlightedPhrases(new Set());
+      setIsKeywordsHighlighted(false);
       
       if (editor) {
         setTimeout(() => {
@@ -199,6 +202,10 @@ export default function Home() {
     
     setHighlights(newHighlights);
     setIsKeywordsHighlighted(true);
+    setHighlightedKeyword(null);
+    setHighlightedPhrases(new Set());
+    setHighlightedViolation(null);
+    setHighlightedCriteria(null);
   }, [primaryKeyword, subKeyword1, subKeyword2, subKeyword3, subKeyword4, companyName]);
 
   const handleClearAllHighlights = useCallback(() => {
@@ -253,6 +260,7 @@ export default function Home() {
     setHighlightedPhrases(new Set());
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
+    setIsKeywordsHighlighted(false);
   }, [content, getColorForPhrase]);
 
   const handleToggleKeywordsHighlight = useCallback(() => {

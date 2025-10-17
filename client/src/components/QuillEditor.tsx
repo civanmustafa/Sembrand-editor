@@ -337,6 +337,18 @@ export default function QuillEditor({
           margin-bottom: 0.5em;
           line-height: 1.6;
         }
+        .quill-editor-wrapper .ql-editor ol,
+        .quill-editor-wrapper .ql-editor ul {
+          padding-right: 2em;
+          padding-left: 0;
+          margin: 1em 0;
+        }
+        .quill-editor-wrapper .ql-editor li {
+          padding-right: 0.5em;
+          padding-left: 0;
+          margin-bottom: 0.5em;
+          line-height: 1.6;
+        }
         .quill-editor-wrapper #custom-toolbar {
           direction: rtl;
           display: flex;

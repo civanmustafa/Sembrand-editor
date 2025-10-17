@@ -25,8 +25,7 @@ export default function CategoryHeader({ title, emoji, violationCount, totalCoun
         <div className="space-y-1">
           <Progress value={progressValue} className="h-2" />
           <p className="text-xs text-muted-foreground text-right">
-            {achievedCount} من {totalCount} متوافق
-            {violationCount > 0 && ` • ${violationCount} مخالفة`}
+            من {totalCount} معايير: {violationCount} مخالف - {achievedCount} متوافق
           </p>
         </div>
       </div>
