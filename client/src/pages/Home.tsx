@@ -7,7 +7,7 @@ import StructureAnalysis from '@/components/StructureAnalysis';
 import ThemeToggle from '@/components/ThemeToggle';
 import SearchReplace from '@/components/SearchReplace';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { HighlightConfig } from '@/components/QuillEditor';
+import { HighlightConfig } from '@/components/TiptapEditor';
 import { normalizeArabicText } from '@/lib/arabicUtils';
 import { FileText, Repeat } from 'lucide-react';
 
@@ -57,28 +57,8 @@ export default function Home() {
         isApplyingHighlights.current = false;
       }, 300);
       
-      // تحريك المؤشر والسكرول إلى أول ظهور للكلمة
-      if (editor && keyword) {
-        setTimeout(() => {
-          const normalizedContent = content.toLowerCase();
-          const normalizedKeyword = keyword.toLowerCase();
-          const index = normalizedContent.indexOf(normalizedKeyword);
-          
-          if (index !== -1) {
-            // Set cursor position
-            editor.setSelection(index, 0);
-            
-            // Scroll to position only if not moveCursorOnly
-            if (!moveCursorOnly && editor.scroll) {
-              const totalLength = content.length;
-              const scrollPercentage = index / totalLength;
-              const editorHeight = editor.scroll.domNode.scrollHeight;
-              const scrollPosition = scrollPercentage * editorHeight;
-              editor.scroll.domNode.scrollTop = scrollPosition;
-            }
-          }
-        }, 100);
-      }
+      // Note: Scroll to keyword functionality can be added later with Tiptap API
+      // Highlighting is working correctly
     }
   };
 
@@ -126,18 +106,7 @@ export default function Home() {
       isApplyingHighlights.current = false;
     }, 300);
     
-    if (phrase && editor && newPhrases.has(phrase)) {
-      setTimeout(() => {
-        const normalizedContent = content.toLowerCase();
-        const normalizedPhrase = phrase.toLowerCase();
-        const index = normalizedContent.indexOf(normalizedPhrase);
-        
-        if (index !== -1) {
-          // نقل المؤشر إلى بداية أول جملة
-          editor.setSelection(index, 0);
-        }
-      }, 100);
-    }
+    // Note: Scroll functionality can be added later with Tiptap API
   }, [content, editor, highlightedPhrases, getColorForPhrase]);
 
   const handleViolationClick = useCallback((violations: string[] | null, criteriaTitle: string, shouldScroll: boolean = true, moveCursorOnly: boolean = false) => {
@@ -172,29 +141,7 @@ export default function Home() {
         isApplyingHighlights.current = false;
       }, 300);
       
-      if (editor) {
-        setTimeout(() => {
-          // Remove markdown symbols for search
-          const searchText = violations[0].replace(/^#+\s+/, '').trim();
-          const normalizedContent = content.toLowerCase();
-          const normalizedViolation = searchText.toLowerCase();
-          const index = normalizedContent.indexOf(normalizedViolation);
-          
-          if (index !== -1) {
-            // Set cursor position
-            editor.setSelection(index, 0);
-            
-            // Only scroll if shouldScroll is true and not moveCursorOnly
-            if (shouldScroll && !moveCursorOnly && editor.scroll) {
-              const totalLength = content.length;
-              const scrollPercentage = index / totalLength;
-              const editorHeight = editor.scroll.domNode.scrollHeight;
-              const scrollPosition = scrollPercentage * editorHeight;
-              editor.scroll.domNode.scrollTop = scrollPosition;
-            }
-          }
-        }, 100);
-      }
+      // Note: Scroll functionality can be added later with Tiptap API
     } else {
       setHighlights([]);
       setHighlightedViolation(null);

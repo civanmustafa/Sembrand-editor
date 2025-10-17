@@ -1,4 +1,4 @@
-import QuillEditor, { HighlightConfig } from './QuillEditor';
+import TiptapEditor, { HighlightConfig } from './TiptapEditor';
 import { Card } from '@/components/ui/card';
 
 interface ContentEditorProps {
@@ -107,7 +107,7 @@ export default function ContentEditor({
   return (
     <Card className="h-full flex flex-col">
       <div className="flex-1 overflow-hidden p-4">
-        <QuillEditor
+        <TiptapEditor
           value={htmlContent}
           onChange={handleChange}
           highlightedKeyword={highlightedKeyword}
