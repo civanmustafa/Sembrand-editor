@@ -317,15 +317,35 @@ export default function TiptapEditor({
       // Restore cursor position after content update
       setTimeout(() => {
         try {
-          // Make sure the position is still valid
           const docSize = editor.state.doc.content.size;
-          const validFrom = Math.min(savedCursorPos.from, docSize);
-          const validTo = Math.min(savedCursorPos.to, docSize);
           
-          editor.commands.setTextSelection({ from: validFrom, to: validTo });
+          // Handle empty document case
+          if (docSize === 0) {
+            editor.commands.setTextSelection({ from: 0, to: 0 });
+            isApplyingHighlights.current = false;
+            return;
+          }
+          
+          // Clamp both endpoints to valid ProseMirror range [0, docSize]
+          // This keeps cursor as close as possible to original position
+          let clampedFrom = Math.max(0, Math.min(savedCursorPos.from, docSize));
+          let clampedTo = Math.max(0, Math.min(savedCursorPos.to, docSize));
+          
+          // Ensure from <= to (preserve selection direction)
+          if (clampedFrom > clampedTo) {
+            [clampedFrom, clampedTo] = [clampedTo, clampedFrom];
+          }
+          
+          // Restore selection with clamped positions
+          editor.commands.setTextSelection({ 
+            from: clampedFrom, 
+            to: clampedTo 
+          });
         } catch (e) {
-          // If restoration fails, just focus the editor
-          editor.commands.focus();
+          // If restoration fails, just focus without changing selection
+          try {
+            editor.commands.focus();
+          } catch {}
         }
         isApplyingHighlights.current = false;
       }, 10);
