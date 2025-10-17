@@ -27,6 +27,7 @@ export default function Home() {
   const [editor, setEditor] = useState<any>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isKeywordsHighlighted, setIsKeywordsHighlighted] = useState(false);
+  const [scrollToText, setScrollToText] = useState<string | null>(null);
   
   // Ref to prevent phrase cleanup effect from running when we just applied highlights
   const isApplyingHighlights = useRef(false);
@@ -115,6 +116,7 @@ export default function Home() {
       setHighlights([]);
       setHighlightedViolation(null);
       setHighlightedCriteria(null);
+      setScrollToText(null);
       return;
     }
     
@@ -136,18 +138,25 @@ export default function Home() {
       setHighlightedKeyword(null);
       setHighlightedPhrases(new Set());
       
+      // Scroll to the first violation (move cursor without clicking or removing highlights)
+      setScrollToText(violations[0]);
+      
+      // Reset scroll after a short delay to allow for re-triggering if needed
+      setTimeout(() => {
+        setScrollToText(null);
+      }, 500);
+      
       // Reset flag after a short delay
       setTimeout(() => {
         isApplyingHighlights.current = false;
       }, 300);
-      
-      // Note: Scroll functionality can be added later with Tiptap API
     } else {
       setHighlights([]);
       setHighlightedViolation(null);
       setHighlightedCriteria(null);
       setHighlightedKeyword(null);
       setHighlightedPhrases(new Set());
+      setScrollToText(null);
     }
   }, [content, editor, highlightedCriteria]);
 
@@ -433,6 +442,7 @@ export default function Home() {
               highlightedKeyword={highlightedKeyword || highlightedViolation}
               highlights={highlights}
               onEditorReady={setEditor}
+              scrollToText={scrollToText}
             />
           </div>
 

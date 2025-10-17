@@ -33,6 +33,7 @@ interface TiptapEditorProps {
   highlightedKeyword?: string | null;
   highlights?: HighlightConfig[];
   onEditorReady?: (editor: Editor) => void;
+  scrollToText?: string | null;
 }
 
 // Arabic text normalization for matching
@@ -90,7 +91,8 @@ export default function TiptapEditor({
   onChange,
   highlightedKeyword,
   highlights = [],
-  onEditorReady
+  onEditorReady,
+  scrollToText = null
 }: TiptapEditorProps) {
   const [selectionStats, setSelectionStats] = useState({ words: 0, chars: 0 });
   const isApplyingHighlights = useRef(false);
@@ -318,6 +320,64 @@ export default function TiptapEditor({
     }
   }, [highlights, highlightedKeyword, editor]);
 
+  // Scroll to text when scrollToText changes
+  useEffect(() => {
+    if (!editor || !scrollToText) return;
+
+    const docText = editor.getText();
+    const searchNormalized = normalizeForComparison(scrollToText);
+    
+    // Split into words for flexible matching
+    const words = normalizeForSearch(scrollToText).split(' ').filter(w => w.length > 0);
+    if (words.length === 0) return;
+
+    // Build regex pattern with Arabic character variants
+    const escapedWords = words.map(w => {
+      const normalized = normalizeForComparison(w);
+      const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      
+      return escaped
+        .replace(/ا/g, '[اأإآ]')
+        .replace(/و/g, '[وؤ]')
+        .replace(/ي/g, '[يئى]')
+        .replace(/ه/g, '[هة]');
+    });
+    
+    const regexPattern = escapedWords.join('[^\\u0600-\\u06FF\\s]*[\\s\\u060C\\u061B\\u061F]*[^\\u0600-\\u06FF\\s]*');
+    const regex = new RegExp(regexPattern, 'i');
+
+    // Find the first occurrence in the document
+    let found = false;
+    editor.state.doc.descendants((node, pos) => {
+      if (found || !node.isTextblock) return false;
+      
+      const text = node.textContent;
+      const match = text.match(regex);
+      
+      if (match && match.index !== undefined) {
+        // Calculate the exact position
+        const matchPos = pos + 1 + match.index;
+        
+        // Set cursor position without selecting text
+        editor.chain()
+          .focus()
+          .setTextSelection(matchPos)
+          .run();
+        
+        // Scroll to the position
+        const { node: domNode } = editor.view.domAtPos(matchPos);
+        if (domNode instanceof Element) {
+          domNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (domNode.parentElement) {
+          domNode.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        found = true;
+        return false;
+      }
+    });
+  }, [scrollToText, editor]);
+
   if (!editor) return null;
 
   return (
@@ -379,6 +439,14 @@ export default function TiptapEditor({
           margin-top: 0.5em;
           margin-bottom: 0.5em;
           line-height: 1.6;
+          color: hsl(var(--foreground));
+        }
+        
+        /* تحسين لون النص في الوضع المظلم لجعله أكثر وضوحاً */
+        .dark .tiptap-editor-wrapper .ProseMirror p,
+        .dark .tiptap-editor-wrapper .ProseMirror,
+        .dark .tiptap-editor-wrapper .ProseMirror li {
+          color: hsl(0 0% 95%);
         }
         
         .tiptap-editor-wrapper .ProseMirror ul,
@@ -393,6 +461,7 @@ export default function TiptapEditor({
           padding-left: 0;
           margin-bottom: 0.5em;
           line-height: 1.6;
+          color: hsl(var(--foreground));
         }
         
         .tiptap-editor-wrapper .highlight-mark {
