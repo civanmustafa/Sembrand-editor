@@ -10,7 +10,7 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (October 2025)
 
-### UX Enhancements Batch (October 17, 2025)
+### UX Enhancements Batch 1 (October 17, 2025)
 1. **Editor Scrollbar:** Repositioned to far left edge for RTL layout consistency
 2. **Cursor Stability:** Preserved cursor position during highlight activation and text formatting operations
 3. **Scroll Prevention:** Added preventDefault on highlight buttons to prevent unwanted card scrolling
@@ -24,6 +24,14 @@ Preferred communication style: Simple, everyday language.
 11. **Cursor Preservation:** Implemented cursor position save/restore during highlight updates to prevent jumping to end
 12. **Metrics Layout:** "المطلوب" and "الحالي" now display in single line with bullet separator (•) in criteria cards
 13. **Progress Bar Consistency:** Added animate-pulse effect to structure/content progress bars to match repeated phrases tab
+
+### UX Enhancements Batch 2 (October 17, 2025)
+14. **Auto-Scroll Prevention:** Fixed unwanted scroll-to-end behavior when editing - scroll position now preserved during all content updates
+15. **Full-Width Editor:** Removed Card padding to allow editor to span full width from right edge to left edge when window is maximized
+16. **Empty Lines Cleanup:** Enhanced "remove empty lines" button to properly clean all empty paragraphs, line breaks, and whitespace
+17. **Punctuation-Insensitive Phrases:** Updated phrase detection to ignore all punctuation marks (Arabic & English) for accurate repeated phrase matching
+18. **Category Highlight Glow:** Added visual feedback when all phrases in a category are highlighted - card gets ring-2 border and shadow-lg glow
+19. **Icon Highlight Effect:** Highlight icon in category header glows with ring and scale animation when all phrases are selected
 
 ## System Architecture
 

@@ -554,3 +554,77 @@ editor.commands.setTextSelection({ from: clampedFrom, to: clampedTo });
 - client/src/components/TiptapEditor.tsx (تحديث منطق استعادة موقع المؤشر)
 
 **Status: ✅ CURSOR POSITION FIX COMPLETED - ARCHITECT APPROVED - ALL EDGE CASES HANDLED**
+
+---
+
+## Current Session - October 17, 2025 (UX Enhancements Batch 2)
+
+[x] 107. إصلاح مشكلة السكرول التلقائي عند التعديل - حفظ واستعادة موقع السكرول
+[x] 108. إصلاح عرض المحرر عند التوسيع - إزالة padding من Card
+[x] 109. إصلاح زر "مسح الأسطر الفارغة" - تحسين regex patterns وحفظ موقع المؤشر
+[x] 110. تحديث normalizeForAnalysis - إضافة إزالة علامات الترقيم (العربية والإنجليزية)
+[x] 111. إضافة توهج لإطار التصنيف عند تمييز جميع العبارات - ring-2 shadow-lg
+[x] 112. إضافة توهج لأيقونة التمييز عند تمييز جميع العبارات - ring-2 scale-110
+[x] 113. اختبار جميع التعديلات والحصول على موافقة المعماري
+
+**التفاصيل الفنية:**
+
+**المشاكل المحلولة:**
+
+1. **السكرول التلقائي عند التعديل**:
+   - المشكلة: عند تحديث المحتوى، كان المحرر يقوم بعمل scroll تلقائي إلى نهاية النص
+   - الحل: حفظ موقع السكرول الحالي قبل استعادة المؤشر واستعادته باستخدام requestAnimationFrame
+   ```javascript
+   const scrollElement = editor.view.dom.closest('.ProseMirror');
+   const savedScrollTop = scrollElement?.scrollTop || 0;
+   // ... restore cursor ...
+   requestAnimationFrame(() => {
+     if (scrollElement) {
+       scrollElement.scrollTop = savedScrollTop;
+     }
+   });
+   ```
+
+2. **عرض المحرر عند التوسيع**:
+   - المشكلة: المحرر لا يمتد من أقصى اليمين لأقصى اليسار عند توسيع النافذة
+   - الحل: إزالة padding من Card (`p-0`) وإزالة `py-4` من wrapper div
+   
+3. **زر "مسح الأسطر الفارغة"**:
+   - المشكلة: الزر لا يقوم بمسح الأسطر الفارغة بشكل صحيح
+   - الحل: تحسين regex patterns وحفظ/استعادة موقع المؤشر
+   ```javascript
+   .replace(/<p>\s*<\/p>/g, '')
+   .replace(/<p><br\s*\/?><\/p>/gi, '')
+   .replace(/<p>[\s\u200B\u00A0]*<\/p>/g, '')
+   ```
+
+4. **علامات الترقيم في الجمل المكررة**:
+   - المشكلة: علامات الترقيم تسبب false positives في اكتشاف الجمل المكررة
+   - الحل: تحديث normalizeForAnalysis لإزالة جميع علامات الترقيم قبل المقارنة
+   ```javascript
+   .replace(/[.,،؛;:!?؟\-_'"""()[\]{}\/\\|]/g, ' ')
+   ```
+
+5. **توهج التصنيف والأيقونة**:
+   - عند تمييز جميع العبارات في تصنيف:
+     - Card: `ring-2 ring-primary/50 shadow-lg shadow-primary/20`
+     - Button: `bg-primary/10 ring-2 ring-primary/30 shadow-sm shadow-primary/30`
+     - Icon: `text-primary scale-110`
+   - انتقالات سلسة مع `transition-all duration-300`
+
+**النتائج:**
+- ✅ المؤشر يبقى ثابتاً دون حركة غير متوقعة
+- ✅ السكرول لا يتحرك عند التعديل
+- ✅ المحرر يمتد من أقصى اليمين لأقصى اليسار
+- ✅ زر مسح الأسطر الفارغة يعمل بشكل صحيح
+- ✅ الجمل المكررة تتجاهل علامات الترقيم
+- ✅ التصنيفات والأيقونات تتوهج عند التمييز الكامل
+- ✅ تمت الموافقة من المعماري
+
+**الملفات المعدلة:**
+- client/src/components/TiptapEditor.tsx
+- client/src/components/ContentEditor.tsx
+- client/src/components/RepeatedPhrases.tsx
+- client/src/lib/arabicUtils.ts
+
+**Status: ✅ UX ENHANCEMENTS BATCH 2 COMPLETED - ARCHITECT APPROVED - ALL FIXES VALIDATED**
