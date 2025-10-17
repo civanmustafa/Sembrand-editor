@@ -32,6 +32,16 @@ export default function Home() {
   // Ref to prevent phrase cleanup effect from running when we just applied highlights
   const isApplyingHighlights = useRef(false);
 
+  const handleClearHighlights = useCallback(() => {
+    setHighlights([]);
+    setHighlightedKeyword(null);
+    setHighlightedPhrases(new Set());
+    setHighlightedViolation(null);
+    setHighlightedCriteria(null);
+    setScrollToText(null);
+    setIsKeywordsHighlighted(false);
+  }, []);
+
   const handleKeywordClick = (keyword: string, moveCursorOnly: boolean = false) => {
     // Set flag to prevent phrase cleanup effect from running
     isApplyingHighlights.current = true;
@@ -45,6 +55,7 @@ export default function Home() {
     if (highlightedKeyword === keyword) {
       setHighlightedKeyword(null);
       setHighlights([]);
+      setScrollToText(null);
     } else {
       setHighlightedKeyword(keyword);
       setHighlights([{
@@ -53,13 +64,18 @@ export default function Home() {
         type: 'keyword' as const
       }]);
       
+      // Scroll to the first keyword occurrence
+      setScrollToText(keyword);
+      
+      // Reset scroll after a short delay
+      setTimeout(() => {
+        setScrollToText(null);
+      }, 500);
+      
       // Reset flag after a short delay
       setTimeout(() => {
         isApplyingHighlights.current = false;
       }, 300);
-      
-      // Note: Scroll to keyword functionality can be added later with Tiptap API
-      // Highlighting is working correctly
     }
   };
 
@@ -76,6 +92,7 @@ export default function Home() {
     if (!phrase) {
       setHighlightedPhrases(new Set());
       setHighlights([]);
+      setScrollToText(null);
       return;
     }
 
@@ -83,7 +100,9 @@ export default function Home() {
     isApplyingHighlights.current = true;
 
     const newPhrases = new Set(highlightedPhrases);
-    if (newPhrases.has(phrase)) {
+    const wasHighlighted = newPhrases.has(phrase);
+    
+    if (wasHighlighted) {
       newPhrases.delete(phrase);
     } else {
       newPhrases.add(phrase);
@@ -102,12 +121,18 @@ export default function Home() {
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
     
+    // If we just added a phrase, scroll to it
+    if (!wasHighlighted) {
+      setScrollToText(phrase);
+      setTimeout(() => {
+        setScrollToText(null);
+      }, 500);
+    }
+    
     // Reset flag after a short delay to allow highlights to be applied
     setTimeout(() => {
       isApplyingHighlights.current = false;
     }, 300);
-    
-    // Note: Scroll functionality can be added later with Tiptap API
   }, [content, editor, highlightedPhrases, getColorForPhrase]);
 
   const handleViolationClick = useCallback((violations: string[] | null, criteriaTitle: string, shouldScroll: boolean = true, moveCursorOnly: boolean = false) => {
@@ -443,6 +468,7 @@ export default function Home() {
               highlights={highlights}
               onEditorReady={setEditor}
               scrollToText={scrollToText}
+              onClearHighlights={handleClearHighlights}
             />
           </div>
 

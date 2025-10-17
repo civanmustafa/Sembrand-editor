@@ -18,7 +18,11 @@ import {
   AlignLeft,
   AlignCenter,
   Link as LinkIcon,
-  Code
+  Code,
+  Eraser,
+  Trash2,
+  Save,
+  RotateCcw
 } from 'lucide-react';
 
 export interface HighlightConfig {
@@ -34,6 +38,7 @@ interface TiptapEditorProps {
   highlights?: HighlightConfig[];
   onEditorReady?: (editor: Editor) => void;
   scrollToText?: string | null;
+  onClearHighlights?: () => void;
 }
 
 // Arabic text normalization for matching
@@ -92,9 +97,11 @@ export default function TiptapEditor({
   highlightedKeyword,
   highlights = [],
   onEditorReady,
-  scrollToText = null
+  scrollToText = null,
+  onClearHighlights
 }: TiptapEditorProps) {
   const [selectionStats, setSelectionStats] = useState({ words: 0, chars: 0 });
+  const [savedContent, setSavedContent] = useState<string>('');
   const isApplyingHighlights = useRef(false);
   const previousValue = useRef<string>(value);
   const highlightsRef = useRef<HighlightConfig[]>(highlights);
@@ -385,7 +392,7 @@ export default function TiptapEditor({
       <style>{`
         .tiptap-editor-wrapper {
           font-family: Tajawal, Cairo, "IBM Plex Sans Arabic", -apple-system, sans-serif;
-          direction: rtl;
+          direction: ltr;
         }
         
         .tiptap-editor-wrapper .ProseMirror {
@@ -393,6 +400,26 @@ export default function TiptapEditor({
           font-size: 16px;
           direction: rtl;
           text-align: right;
+          overflow-y: auto;
+          max-height: calc(100vh - 250px);
+        }
+        
+        .tiptap-editor-wrapper .ProseMirror::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        .tiptap-editor-wrapper .ProseMirror::-webkit-scrollbar-track {
+          background: hsl(var(--muted));
+          border-radius: 4px;
+        }
+        
+        .tiptap-editor-wrapper .ProseMirror::-webkit-scrollbar-thumb {
+          background: hsl(var(--border));
+          border-radius: 4px;
+        }
+        
+        .tiptap-editor-wrapper .ProseMirror::-webkit-scrollbar-thumb:hover {
+          background: hsl(var(--foreground) / 0.3);
         }
         
         .tiptap-editor-wrapper .ProseMirror h1 {
@@ -559,10 +586,11 @@ export default function TiptapEditor({
               }
               onChange={(e) => {
                 const level = e.target.value;
+                const { from, to } = editor.state.selection;
                 if (level) {
-                  editor.chain().focus().setHeading({ level: parseInt(level) as 1 | 2 | 3 | 4 }).run();
+                  editor.chain().setHeading({ level: parseInt(level) as 1 | 2 | 3 | 4 }).setTextSelection({ from, to }).run();
                 } else {
-                  editor.chain().focus().setParagraph().run();
+                  editor.chain().setParagraph().setTextSelection({ from, to }).run();
                 }
               }}
               data-testid="select-heading"
@@ -577,7 +605,10 @@ export default function TiptapEditor({
             <div className="toolbar-divider" />
 
             <button
-              onClick={() => editor.chain().focus().toggleOrderedList().run()}
+              onClick={() => {
+                const { from, to } = editor.state.selection;
+                editor.chain().toggleOrderedList().setTextSelection({ from, to }).run();
+              }}
               className={editor.isActive('orderedList') ? 'is-active' : ''}
               data-testid="button-ordered-list"
               title="قائمة مرقمة"
@@ -586,7 +617,10 @@ export default function TiptapEditor({
             </button>
 
             <button
-              onClick={() => editor.chain().focus().toggleBulletList().run()}
+              onClick={() => {
+                const { from, to } = editor.state.selection;
+                editor.chain().toggleBulletList().setTextSelection({ from, to }).run();
+              }}
               className={editor.isActive('bulletList') ? 'is-active' : ''}
               data-testid="button-bullet-list"
               title="قائمة نقطية"
@@ -646,6 +680,60 @@ export default function TiptapEditor({
               title="كود"
             >
               <Code className="w-4 h-4" />
+            </button>
+
+            <div className="toolbar-divider" />
+
+            <button
+              onClick={() => {
+                if (onClearHighlights) {
+                  onClearHighlights();
+                }
+              }}
+              data-testid="button-clear-highlights"
+              title="إلغاء التمييز"
+            >
+              <Eraser className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={() => {
+                const content = editor.getHTML();
+                const cleaned = content
+                  .replace(/<p>\s*<\/p>/g, '')
+                  .replace(/<p><br><\/p>/g, '')
+                  .replace(/\n\n+/g, '\n\n');
+                editor.commands.setContent(cleaned);
+              }}
+              data-testid="button-remove-empty-lines"
+              title="مسح الأسطر الفارغة"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+
+            <div className="toolbar-divider" />
+
+            <button
+              onClick={() => {
+                setSavedContent(editor.getHTML());
+              }}
+              data-testid="button-save"
+              title="حفظ"
+            >
+              <Save className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={() => {
+                if (savedContent) {
+                  editor.commands.setContent(savedContent);
+                }
+              }}
+              data-testid="button-restore"
+              title="استرداد"
+              disabled={!savedContent}
+            >
+              <RotateCcw className="w-4 h-4" />
             </button>
           </div>
 

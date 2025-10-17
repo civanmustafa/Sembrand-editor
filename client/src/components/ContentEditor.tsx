@@ -8,6 +8,7 @@ interface ContentEditorProps {
   highlights?: HighlightConfig[];
   onEditorReady?: (editor: any) => void;
   scrollToText?: string | null;
+  onClearHighlights?: () => void;
 }
 
 const textToHtml = (text: string): string => {
@@ -97,7 +98,8 @@ export default function ContentEditor({
   highlightedKeyword,
   highlights = [],
   onEditorReady,
-  scrollToText = null
+  scrollToText = null,
+  onClearHighlights
 }: ContentEditorProps) {
   const htmlContent = textToHtml(content);
   
@@ -116,6 +118,7 @@ export default function ContentEditor({
           highlights={highlights}
           onEditorReady={onEditorReady}
           scrollToText={scrollToText}
+          onClearHighlights={onClearHighlights}
         />
       </div>
     </Card>
