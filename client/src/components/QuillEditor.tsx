@@ -1,8 +1,6 @@
 import { useRef, useEffect, useMemo, useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { Button } from '@/components/ui/button';
-import { EraserIcon, RemoveFormatting } from 'lucide-react';
 
 export interface HighlightConfig {
   text: string;
@@ -16,7 +14,6 @@ interface QuillEditorProps {
   highlightedKeyword?: string | null;
   highlights?: HighlightConfig[];
   onEditorReady?: (editor: any) => void;
-  onClearHighlights?: () => void;
 }
 
 export default function QuillEditor({
@@ -24,8 +21,7 @@ export default function QuillEditor({
   onChange,
   highlightedKeyword,
   highlights = [],
-  onEditorReady,
-  onClearHighlights
+  onEditorReady
 }: QuillEditorProps) {
   const quillRef = useRef<ReactQuill>(null);
   const [selectionStats, setSelectionStats] = useState({ words: 0, chars: 0 });
@@ -236,46 +232,6 @@ export default function QuillEditor({
   }, [highlightedKeyword, highlights]);
 
 
-  const handleRemoveEmptyLines = () => {
-    if (!quillRef.current) return;
-    
-    const editor = quillRef.current.getEditor();
-    const delta = editor.getContents();
-    
-    // Process delta to remove excessive empty lines while preserving formatting
-    const ops = delta.ops || [];
-    const newOps: any[] = [];
-    let consecutiveNewlines = 0;
-    
-    ops.forEach(op => {
-      if (typeof op.insert === 'string') {
-        const text = op.insert;
-        let processedText = '';
-        
-        for (const char of text) {
-          if (char === '\n') {
-            consecutiveNewlines++;
-            if (consecutiveNewlines <= 2) {
-              processedText += char;
-            }
-          } else {
-            consecutiveNewlines = 0;
-            processedText += char;
-          }
-        }
-        
-        if (processedText) {
-          newOps.push({ ...op, insert: processedText });
-        }
-      } else {
-        newOps.push(op);
-        consecutiveNewlines = 0;
-      }
-    });
-    
-    const newDelta = { ops: newOps };
-    editor.setContents(newDelta as any);
-  };
 
   const modules = useMemo(() => ({
     toolbar: {
@@ -508,28 +464,6 @@ export default function QuillEditor({
                   </span>
                 </div>
               )}
-              {onClearHighlights && (
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={onClearHighlights}
-                  className="h-7 w-7"
-                  data-testid="button-clear-highlights"
-                  title="إلغاء جميع التمييز"
-                >
-                  <EraserIcon className="w-3.5 h-3.5" />
-                </Button>
-              )}
-              <Button
-                size="icon"
-                variant="outline"
-                onClick={handleRemoveEmptyLines}
-                className="h-7 w-7"
-                data-testid="button-remove-empty-lines"
-                title="مسح الأسطر الفارغة الزائدة"
-              >
-                <RemoveFormatting className="w-3.5 h-3.5" />
-              </Button>
             </div>
           </div>
         </div>

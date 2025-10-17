@@ -486,7 +486,6 @@ export default function Home() {
               highlightedKeyword={highlightedKeyword || highlightedViolation}
               highlights={highlights}
               onEditorReady={setEditor}
-              onClearHighlights={handleClearAllHighlights}
             />
           </div>
 
