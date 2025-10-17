@@ -12,6 +12,33 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 17, 2025 - Highlight Persistence & Statistics Icons
+
+**Highlight Persistence System**
+- Implemented `isApplyingHighlights` ref flag in QuillEditor to prevent onChange during highlight application
+- Highlights now persist until explicitly cleared by text editing or clicking "تمييز الكل" button again
+- Fixed bug where clicking in editor would clear all highlights
+- Added `previousTextContent` ref to compare actual text changes vs. highlight-only changes
+
+**Individual Keyword Toggle Fix**
+- Removed automatic clearing of `isKeywordsHighlighted` state from handleKeywordClick
+- Individual keyword toggle now works correctly: first click highlights, second click removes
+- Added 'keyword' type to HighlightConfig interface for proper typing
+- Toggle functionality independent from "تمييز الكل" button state
+
+**Criteria Highlighting Stability**
+- Removed `setIsKeywordsHighlighted(false)` from all violation and phrase handlers
+- Highlights remain stable when clicking on criteria violations
+- Only cleared when user edits text or clicks clear button
+- Improved user experience for reviewing and fixing violations
+
+**Statistics Icons Enhancement**
+- Added attractive icon-based display for category statistics in CategoryHeader
+- ListChecks icon (blue) for total criteria count
+- XCircle icon (red) for violation count
+- CheckCircle2 icon (green) for achieved/compliant count
+- Icons aligned horizontally with color-coded metrics for better visual understanding
+
 ### October 15, 2025 - Structure Criteria Category & UI Refinements
 
 **Structure Criteria Category**
