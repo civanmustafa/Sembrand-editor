@@ -465,7 +465,7 @@ export default function TiptapEditor({
           text-align: right;
           overflow-y: auto;
           max-height: calc(100vh - 250px);
-          padding: 0 !important;
+          padding: 1.5rem !important;
           margin: 0 !important;
         }
         
@@ -654,34 +654,8 @@ export default function TiptapEditor({
 
       <div className="relative">
         <div className="tiptap-toolbar">
+          {/* السطر العلوي - الأزرار الإضافية */}
           <div className="tiptap-toolbar-row">
-            <select
-              value={
-                editor.isActive('heading', { level: 1 }) ? '1' :
-                editor.isActive('heading', { level: 2 }) ? '2' :
-                editor.isActive('heading', { level: 3 }) ? '3' :
-                editor.isActive('heading', { level: 4 }) ? '4' : ''
-              }
-              onChange={(e) => {
-                const level = e.target.value;
-                const { from, to } = editor.state.selection;
-                if (level) {
-                  editor.chain().setHeading({ level: parseInt(level) as 1 | 2 | 3 | 4 }).setTextSelection({ from, to }).run();
-                } else {
-                  editor.chain().setParagraph().setTextSelection({ from, to }).run();
-                }
-              }}
-              data-testid="select-heading"
-            >
-              <option value="">نص عادي</option>
-              <option value="1">عنوان 1</option>
-              <option value="2">عنوان 2</option>
-              <option value="3">عنوان 3</option>
-              <option value="4">عنوان 4</option>
-            </select>
-
-            <div className="toolbar-divider" />
-
             <button
               onClick={() => {
                 const { from, to } = editor.state.selection;
@@ -776,21 +750,14 @@ export default function TiptapEditor({
 
             <button
               onClick={() => {
-                // Save cursor position
                 const { from, to } = editor.state.selection;
-                
-                // Get and clean content
                 const content = editor.getHTML();
                 const cleaned = content
                   .replace(/<p>\s*<\/p>/g, '')
                   .replace(/<p><br\s*\/?><\/p>/gi, '')
                   .replace(/<p>[\s\u200B\u00A0]*<\/p>/g, '')
                   .replace(/(<\/[^>]+>)\s*\n\s*(<[^>]+>)/g, '$1$2');
-                
-                // Set cleaned content
                 editor.commands.setContent(cleaned);
-                
-                // Restore cursor position
                 setTimeout(() => {
                   const newDocSize = editor.state.doc.content.size;
                   const safeFrom = Math.min(from, newDocSize);
@@ -807,9 +774,7 @@ export default function TiptapEditor({
             <div className="toolbar-divider" />
 
             <button
-              onClick={() => {
-                setSavedContent(editor.getHTML());
-              }}
+              onClick={() => setSavedContent(editor.getHTML())}
               data-testid="button-save"
               title="حفظ"
             >
@@ -830,7 +795,70 @@ export default function TiptapEditor({
             </button>
           </div>
 
+          {/* السطر السفلي - الأزرار الأساسية */}
           <div className="tiptap-toolbar-row">
+            <button
+              onClick={() => {
+                const { from, to } = editor.state.selection;
+                editor.chain().setParagraph().setTextSelection({ from, to }).run();
+              }}
+              className={!editor.isActive('heading') ? 'is-active' : ''}
+              data-testid="button-paragraph"
+              title="نص عادي"
+            >
+              نص عادي
+            </button>
+
+            <button
+              onClick={() => {
+                const { from, to } = editor.state.selection;
+                editor.chain().setHeading({ level: 1 }).setTextSelection({ from, to }).run();
+              }}
+              className={editor.isActive('heading', { level: 1 }) ? 'is-active' : ''}
+              data-testid="button-heading-1"
+              title="عنوان 1"
+            >
+              H1
+            </button>
+
+            <button
+              onClick={() => {
+                const { from, to } = editor.state.selection;
+                editor.chain().setHeading({ level: 2 }).setTextSelection({ from, to }).run();
+              }}
+              className={editor.isActive('heading', { level: 2 }) ? 'is-active' : ''}
+              data-testid="button-heading-2"
+              title="عنوان 2"
+            >
+              H2
+            </button>
+
+            <button
+              onClick={() => {
+                const { from, to } = editor.state.selection;
+                editor.chain().setHeading({ level: 3 }).setTextSelection({ from, to }).run();
+              }}
+              className={editor.isActive('heading', { level: 3 }) ? 'is-active' : ''}
+              data-testid="button-heading-3"
+              title="عنوان 3"
+            >
+              H3
+            </button>
+
+            <button
+              onClick={() => {
+                const { from, to } = editor.state.selection;
+                editor.chain().setHeading({ level: 4 }).setTextSelection({ from, to }).run();
+              }}
+              className={editor.isActive('heading', { level: 4 }) ? 'is-active' : ''}
+              data-testid="button-heading-4"
+              title="عنوان 4"
+            >
+              H4
+            </button>
+
+            <div className="toolbar-divider" />
+
             <button
               onClick={() => editor.chain().focus().toggleBold().run()}
               className={editor.isActive('bold') ? 'is-active' : ''}

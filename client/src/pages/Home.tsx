@@ -212,7 +212,7 @@ export default function Home() {
     if (companyName) {
       newHighlights.push({
         text: companyName,
-        color: 'red',
+        color: 'blue',
         type: 'company'
       });
     }
@@ -434,6 +434,7 @@ export default function Home() {
                 subKeyword3={subKeyword3}
                 subKeyword4={subKeyword4}
                 companyName={companyName}
+                content={content}
                 onPrimaryChange={setPrimaryKeyword}
                 onSubKeyword1Change={setSubKeyword1}
                 onSubKeyword2Change={setSubKeyword2}
