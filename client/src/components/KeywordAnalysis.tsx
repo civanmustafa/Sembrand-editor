@@ -181,7 +181,11 @@ export default function KeywordAnalysis({
                 size="icon"
                 variant="ghost"
                 className="h-7 w-7"
-                onClick={() => onKeywordClick(keyword, isCompany)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onKeywordClick(keyword, isCompany);
+                }}
                 data-testid={`button-highlight-${keyword}`}
               >
                 <Highlighter className="w-3 h-3" />

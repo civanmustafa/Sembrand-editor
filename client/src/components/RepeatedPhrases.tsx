@@ -89,6 +89,8 @@ export default function RepeatedPhrases({
       .filter(w => w.length > 0);
 
     const originalWords = normalizeForAnalysis(content)
+      .replace(/[^\u0600-\u06FF\s]/g, ' ')
+      .replace(/\s+/g, ' ')
       .split(' ')
       .filter(w => w.length > 0);
 
@@ -261,7 +263,11 @@ export default function RepeatedPhrases({
                   size="icon"
                   variant="ghost"
                   className="h-7 w-7"
-                  onClick={(e) => toggleCategoryHighlight(phrases, e)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleCategoryHighlight(phrases, e);
+                  }}
                   data-testid={`button-highlight-category-${testId}`}
                   title={allHighlighted ? "إلغاء تمييز الكل" : "تمييز الكل"}
                 >
@@ -272,7 +278,7 @@ export default function RepeatedPhrases({
               <CardTitle className="text-sm font-medium">{title}</CardTitle>
             </div>
             <div className="mt-2 space-y-1">
-              <Progress value={progressValue} className="h-1.5" />
+              <Progress value={progressValue} className="h-1.5 animate-pulse" />
               <p className="text-xs text-muted-foreground text-right">
                 {removedRepetitions} من {initialRepetitions} تكرار محذوف
               </p>
