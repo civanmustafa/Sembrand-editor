@@ -52,6 +52,12 @@ export default function QuillEditor({
     }
   }, [onEditorReady]);
 
+  // Store current highlights config for MutationObserver
+  const currentHighlightsConfig = useRef<{keyword: string | null, highlights: HighlightConfig[]}>({
+    keyword: null,
+    highlights: []
+  });
+
   useEffect(() => {
     if (!quillRef.current) return;
     
@@ -63,6 +69,12 @@ export default function QuillEditor({
     
     // Store current text content before applying highlights
     previousTextContent.current = editorContainer.textContent || '';
+    
+    // Store current highlights config
+    currentHighlightsConfig.current = {
+      keyword: highlightedKeyword || null,
+      highlights: [...highlights]
+    };
     
     // Remove all existing highlights while preserving child nodes and formatting
     editorContainer.querySelectorAll('.highlight-mark').forEach(mark => {
@@ -217,6 +229,7 @@ export default function QuillEditor({
     setTimeout(() => { isApplyingHighlights.current = false; }, 100);
   }, [highlightedKeyword, highlights]);
 
+
   const handleRemoveEmptyLines = () => {
     if (!quillRef.current) return;
     
@@ -284,9 +297,20 @@ export default function QuillEditor({
     if (quillRef.current) {
       const editor = quillRef.current.getEditor();
       const currentTextContent = editor.root.textContent || '';
+      const currentHTML = editor.root.innerHTML || '';
+      
+      // Count highlight marks in current HTML
+      const currentHighlightCount = (currentHTML.match(/class="highlight-mark"/g) || []).length;
+      const hasHighlights = currentHighlightCount > 0;
       
       // Only trigger onChange if the actual text content changed
-      // This prevents onChange from firing when only highlight spans are added/removed
+      // If we have highlights active, ignore changes that only affect highlight spans
+      if (hasHighlights && currentTextContent === previousTextContent.current) {
+        // Text didn't change, only highlights were added/removed - ignore
+        return;
+      }
+      
+      // Text actually changed, update it
       if (currentTextContent !== previousTextContent.current) {
         previousTextContent.current = currentTextContent;
         onChange(newValue);

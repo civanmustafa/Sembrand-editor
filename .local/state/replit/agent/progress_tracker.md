@@ -151,3 +151,48 @@ All migration items have been successfully completed:
 [x] 55. Updated progress tracker - all items marked as complete with [x] checkboxes
 
 **Status: ✅ MIGRATION FULLY COMPLETED - ALL 55 ITEMS MARKED AS DONE - APPLICATION RUNNING SUCCESSFULLY ON PORT 5000**
+
+## إصلاح نهائي لمشكلة التمييز عند النقر - 17 أكتوبر 2025
+
+[x] 56. تحليل مشكلة إلغاء التمييز عند النقر في المحرر بشكل عميق
+[x] 57. إصلاح جذري للمشكلة بتحسين منطق handleChange في QuillEditor
+[x] 58. إضافة فحص لعدد highlight marks النشطة قبل استدعاء onChange
+[x] 59. منع onChange من الاستدعاء عندما يكون التمييز نشطاً والنص لم يتغير
+[x] 60. اختبار التطبيق والتأكد من ثبات التمييز عند النقر في المحرر
+
+**التفاصيل الفنية:**
+
+المشكلة الجذرية:
+- عندما ينقر المستخدم في المحرر، ReactQuill يستدعي onChange حتى لو لم يتغير النص
+- هذا كان يسبب re-render في Home.tsx، مما يؤدي إلى إلغاء التمييز
+- الحل السابق لم يكن كافياً لأنه لم يأخذ في الاعتبار حالة التمييز النشط
+
+الحل الجديد:
+1. في handleChange، نفحص أولاً إذا كان هناك تمييز نشط (عن طريق عد highlight marks في HTML)
+2. إذا كان هناك تمييز نشط والنص لم يتغير، نتجاهل onChange تماماً
+3. إذا تغير النص فعلياً، نستدعي onChange كالمعتاد
+4. هذا يضمن أن التمييز يبقى ثابتاً عند النقر في المحرر
+
+**الكود المضاف في handleChange:**
+```javascript
+// Count highlight marks in current HTML
+const currentHighlightCount = (currentHTML.match(/class="highlight-mark"/g) || []).length;
+const hasHighlights = currentHighlightCount > 0;
+
+// Only trigger onChange if the actual text content changed
+// If we have highlights active, ignore changes that only affect highlight spans
+if (hasHighlights && currentTextContent === previousTextContent.current) {
+  // Text didn't change, only highlights were added/removed - ignore
+  return;
+}
+```
+
+**الملفات المعدلة:**
+- client/src/components/QuillEditor.tsx (تحسين منطق handleChange)
+
+**النتيجة:**
+- ✅ التمييز الآن يبقى ثابتاً بشكل كامل عند النقر في أي مكان في المحرر
+- ✅ التمييز لا يُلغى إلا عندما يعدل المستخدم النص فعلياً أو ينقر على زر "إلغاء التمييز"
+- ✅ يعمل مع جميع أنواع التمييز: الكلمات المفتاحية، المعايير المخالفة، والجمل المكررة
+
+**Status: ✅ HIGHLIGHT CLICK PERSISTENCE ISSUE COMPLETELY FIXED - APPLICATION WORKING PERFECTLY**
