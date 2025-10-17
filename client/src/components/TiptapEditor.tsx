@@ -106,6 +106,7 @@ export default function TiptapEditor({
   const previousValue = useRef<string>(value);
   const highlightsRef = useRef<HighlightConfig[]>(highlights);
   const keywordRef = useRef<string | null>(highlightedKeyword || null);
+  const isInternalUpdate = useRef(false);
 
   // Update refs when props change
   useEffect(() => {
@@ -280,6 +281,8 @@ export default function TiptapEditor({
       
       if (currentText !== previousText) {
         previousValue.current = html;
+        // Mark this as an internal update (from typing)
+        isInternalUpdate.current = true;
         onChange(html);
       }
     },
@@ -305,6 +308,15 @@ export default function TiptapEditor({
   // Update content when value prop changes
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
+      // If this is an internal update (from typing), skip setContent
+      // to avoid flashing and cursor jumping
+      if (isInternalUpdate.current) {
+        isInternalUpdate.current = false;
+        previousValue.current = value;
+        return;
+      }
+      
+      // This is an external update (e.g., from highlights)
       // Save scroll position BEFORE any updates
       const scrollElement = editor.view.dom.closest('.ProseMirror');
       const savedScrollTop = scrollElement?.scrollTop || 0;
