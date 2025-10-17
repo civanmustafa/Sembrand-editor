@@ -11,6 +11,9 @@ export function normalizeArabicText(text: string): string {
 export function normalizeForAnalysis(text: string): string {
   return text
     .toLowerCase()
+    // Remove all punctuation marks (both Arabic and English)
+    .replace(/[.,،؛;:!?؟\-_'"""()[\]{}\/\\|]/g, ' ')
+    // Remove all non-Arabic characters except spaces
     .replace(/[^\u0600-\u06FF\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();

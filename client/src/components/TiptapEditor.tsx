@@ -319,6 +319,10 @@ export default function TiptapEditor({
         try {
           const docSize = editor.state.doc.content.size;
           
+          // Save current scroll position
+          const scrollElement = editor.view.dom.closest('.ProseMirror');
+          const savedScrollTop = scrollElement?.scrollTop || 0;
+          
           // Handle empty document case
           if (docSize === 0) {
             editor.commands.setTextSelection({ from: 0, to: 0 });
@@ -327,7 +331,6 @@ export default function TiptapEditor({
           }
           
           // Clamp both endpoints to valid ProseMirror range [0, docSize]
-          // This keeps cursor as close as possible to original position
           let clampedFrom = Math.max(0, Math.min(savedCursorPos.from, docSize));
           let clampedTo = Math.max(0, Math.min(savedCursorPos.to, docSize));
           
@@ -340,6 +343,13 @@ export default function TiptapEditor({
           editor.commands.setTextSelection({ 
             from: clampedFrom, 
             to: clampedTo 
+          });
+          
+          // Restore scroll position to prevent auto-scroll
+          requestAnimationFrame(() => {
+            if (scrollElement) {
+              scrollElement.scrollTop = savedScrollTop;
+            }
           });
         } catch (e) {
           // If restoration fails, just focus without changing selection
@@ -753,12 +763,27 @@ export default function TiptapEditor({
 
             <button
               onClick={() => {
+                // Save cursor position
+                const { from, to } = editor.state.selection;
+                
+                // Get and clean content
                 const content = editor.getHTML();
                 const cleaned = content
                   .replace(/<p>\s*<\/p>/g, '')
-                  .replace(/<p><br><\/p>/g, '')
-                  .replace(/\n\n+/g, '\n\n');
+                  .replace(/<p><br\s*\/?><\/p>/gi, '')
+                  .replace(/<p>[\s\u200B\u00A0]*<\/p>/g, '')
+                  .replace(/(<\/[^>]+>)\s*\n\s*(<[^>]+>)/g, '$1$2');
+                
+                // Set cleaned content
                 editor.commands.setContent(cleaned);
+                
+                // Restore cursor position
+                setTimeout(() => {
+                  const newDocSize = editor.state.doc.content.size;
+                  const safeFrom = Math.min(from, newDocSize);
+                  const safeTo = Math.min(to, newDocSize);
+                  editor.commands.setTextSelection({ from: safeFrom, to: safeTo });
+                }, 50);
               }}
               data-testid="button-remove-empty-lines"
               title="مسح الأسطر الفارغة"

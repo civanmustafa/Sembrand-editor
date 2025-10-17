@@ -254,7 +254,11 @@ export default function RepeatedPhrases({
 
     return (
       <Collapsible open={isOpen} onOpenChange={() => toggleSection(sectionId)}>
-        <Card>
+        <Card className={`transition-all duration-300 ${
+          allHighlighted 
+            ? 'ring-2 ring-primary/50 shadow-lg shadow-primary/20' 
+            : ''
+        }`}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between cursor-pointer" onClick={() => toggleSection(sectionId)}>
               <div className="flex items-center gap-2">
@@ -262,7 +266,11 @@ export default function RepeatedPhrases({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7"
+                  className={`h-7 w-7 transition-all duration-300 ${
+                    allHighlighted 
+                      ? 'bg-primary/10 ring-2 ring-primary/30 shadow-sm shadow-primary/30' 
+                      : ''
+                  }`}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -271,7 +279,11 @@ export default function RepeatedPhrases({
                   data-testid={`button-highlight-category-${testId}`}
                   title={allHighlighted ? "إلغاء تمييز الكل" : "تمييز الكل"}
                 >
-                  <Highlighter className={`w-3.5 h-3.5 ${allHighlighted ? 'text-primary' : ''}`} />
+                  <Highlighter className={`w-3.5 h-3.5 transition-all duration-300 ${
+                    allHighlighted 
+                      ? 'text-primary scale-110' 
+                      : ''
+                  }`} />
                 </Button>
                 <Badge variant="outline">{phrases.length}</Badge>
               </div>
