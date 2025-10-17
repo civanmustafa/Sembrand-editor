@@ -105,15 +105,15 @@ export default function CriteriaCard({
         )}
 
         {/* Metrics */}
-        <div className="flex items-center justify-start gap-3 text-xs flex-wrap">
-          <div className="flex items-center gap-1.5">
-            <span className="text-muted-foreground font-medium">مطلوب:</span>
-            <span className="font-mono font-semibold">{required}</span>
+        <div className="flex items-center justify-start gap-2 text-xs flex-wrap">
+          <div className="flex items-center gap-1">
+            <span className="text-xs">✓</span>
+            <span className="font-mono text-[11px]">{required}</span>
           </div>
-          <span className="text-muted-foreground">•</span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-muted-foreground font-medium">حالي:</span>
-            <Badge className={`font-mono ${config.badgeClass} text-xs`}>
+          <span className="text-muted-foreground text-[10px]">←</span>
+          <div className="flex items-center gap-1">
+            <span className="text-xs">→</span>
+            <Badge className={`font-mono ${config.badgeClass} text-[11px] px-1.5 py-0`}>
               {current}
             </Badge>
           </div>

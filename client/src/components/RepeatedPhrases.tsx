@@ -82,15 +82,17 @@ export default function RepeatedPhrases({
       };
     }
 
-    const normalizedWords = normalizeArabicText(content)
+    // تنظيف النص من علامات الترقيم بشكل موحد
+    const cleanText = content
       .replace(/[^\u0600-\u06FF\s]/g, ' ')
       .replace(/\s+/g, ' ')
+      .trim();
+    
+    const normalizedWords = normalizeArabicText(cleanText)
       .split(' ')
       .filter(w => w.length > 0);
 
-    const originalWords = normalizeForAnalysis(content)
-      .replace(/[^\u0600-\u06FF\s]/g, ' ')
-      .replace(/\s+/g, ' ')
+    const originalWords = normalizeForAnalysis(cleanText)
       .split(' ')
       .filter(w => w.length > 0);
 
@@ -194,11 +196,12 @@ export default function RepeatedPhrases({
 
   const toggleCategoryHighlight = (categoryPhrases: PhraseData[], e: React.MouseEvent) => {
     e.stopPropagation();
-    const phrasesSet = new Set(categoryPhrases.map(p => p.phrase));
+    e.preventDefault();
+    
     const allHighlighted = categoryPhrases.every(p => highlightedPhrases.has(p.phrase));
     
     if (allHighlighted) {
-      // Remove all phrases from this category
+      // Remove all phrases from this category - one by one to maintain state
       categoryPhrases.forEach(p => onPhraseClick(p.phrase));
     } else {
       // Add all phrases from this category that aren't already highlighted

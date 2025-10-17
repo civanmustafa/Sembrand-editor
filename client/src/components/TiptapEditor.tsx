@@ -656,6 +656,20 @@ export default function TiptapEditor({
         <div className="tiptap-toolbar">
           {/* السطر العلوي - الأزرار الإضافية */}
           <div className="tiptap-toolbar-row">
+            {selectionStats.words > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-md border border-primary/20">
+                <span className="text-xs font-medium text-primary" data-testid="selection-word-count">
+                  {selectionStats.words} كلمة
+                </span>
+                <span className="text-xs text-muted-foreground">•</span>
+                <span className="text-xs font-medium text-primary" data-testid="selection-char-count">
+                  {selectionStats.chars} حرف
+                </span>
+              </div>
+            )}
+
+            <div style={{ marginRight: 'auto' }} />
+
             <button
               onClick={() => {
                 const { from, to } = editor.state.selection;
@@ -894,20 +908,6 @@ export default function TiptapEditor({
             >
               <Strikethrough className="w-4 h-4" />
             </button>
-
-            <div style={{ marginRight: 'auto' }} className="flex items-center gap-4">
-              {selectionStats.words > 0 && (
-                <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-md border border-primary/20">
-                  <span className="text-xs font-medium text-primary" data-testid="selection-word-count">
-                    {selectionStats.words} كلمة
-                  </span>
-                  <span className="text-xs text-muted-foreground">•</span>
-                  <span className="text-xs font-medium text-primary" data-testid="selection-char-count">
-                    {selectionStats.chars} حرف
-                  </span>
-                </div>
-              )}
-            </div>
           </div>
         </div>
 
