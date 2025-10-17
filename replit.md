@@ -33,6 +33,14 @@ Preferred communication style: Simple, everyday language.
 18. **Category Highlight Glow:** Added visual feedback when all phrases in a category are highlighted - card gets ring-2 border and shadow-lg glow
 19. **Icon Highlight Effect:** Highlight icon in category header glows with ring and scale animation when all phrases are selected
 
+### UX Enhancements Batch 3 (October 17, 2025)
+20. **Editor Spacing:** Increased ProseMirror editor padding from 0 to 1.5rem on all sides for better text readability and visual comfort
+21. **Toolbar Reorganization:** Restructured toolbar into two distinct rows - top row contains additional tools (lists, alignment, links, code, utilities), bottom row contains basic formatting (Normal/H1-H4 heading buttons, bold, italic, underline, strikethrough)
+22. **Heading Controls:** Extracted heading dropdown into individual buttons (Normal, H1, H2, H3, H4) displayed prominently in the bottom toolbar row for easier access
+23. **Keyword Statistics:** Added real-time keyword statistics display below input fields with color-coded badges - green (#22c55e) for primary keyword, orange (#f97316) for sub-keywords, blue (#3b82f6) for company name
+24. **Highlight Colors:** Customized company name highlight color from red to blue (#3b82f6) for better visual distinction from violations
+25. **Criteria Labels:** Simplified criteria card labels from "المطلوب/الحالي" to "مطلوب/حالي" with increased font size (text-xs instead of text-[10px]) for better readability
+
 ## System Architecture
 
 ### Frontend Architecture
