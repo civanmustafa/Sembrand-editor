@@ -393,6 +393,8 @@ export default function TiptapEditor({
         .tiptap-editor-wrapper {
           font-family: Tajawal, Cairo, "IBM Plex Sans Arabic", -apple-system, sans-serif;
           direction: ltr;
+          padding: 0;
+          margin: 0;
         }
         
         .tiptap-editor-wrapper .ProseMirror {
@@ -402,6 +404,21 @@ export default function TiptapEditor({
           text-align: right;
           overflow-y: auto;
           max-height: calc(100vh - 250px);
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+        
+        .tiptap-editor-wrapper .ProseMirror p {
+          margin-right: 0 !important;
+          margin-left: 0 !important;
+        }
+        
+        .tiptap-editor-wrapper .ProseMirror h1,
+        .tiptap-editor-wrapper .ProseMirror h2,
+        .tiptap-editor-wrapper .ProseMirror h3,
+        .tiptap-editor-wrapper .ProseMirror h4 {
+          margin-right: 0 !important;
+          margin-left: 0 !important;
         }
         
         .tiptap-editor-wrapper .ProseMirror::-webkit-scrollbar {

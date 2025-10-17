@@ -110,7 +110,7 @@ export default function ContentEditor({
 
   return (
     <Card className="h-full flex flex-col">
-      <div className="flex-1 overflow-hidden p-4">
+      <div className="flex-1 overflow-hidden py-4">
         <TiptapEditor
           value={htmlContent}
           onChange={handleChange}

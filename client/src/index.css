@@ -371,3 +371,20 @@
     inset: -1px;
   }
 }
+
+/* Global ProseMirror CSS - Remove all padding */
+.ProseMirror {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.ProseMirror p,
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6 {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
