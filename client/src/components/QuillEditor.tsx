@@ -29,6 +29,7 @@ export default function QuillEditor({
 }: QuillEditorProps) {
   const quillRef = useRef<ReactQuill>(null);
   const [selectionStats, setSelectionStats] = useState({ words: 0, chars: 0 });
+  const previousTextContent = useRef<string>('');
 
   useEffect(() => {
     if (quillRef.current) {
@@ -57,6 +58,9 @@ export default function QuillEditor({
     const editor = quillRef.current.getEditor();
     const editorContainer = editor.root;
     
+    // Store current text content before applying highlights
+    previousTextContent.current = editorContainer.textContent || '';
+    
     // Remove all existing highlights while preserving child nodes and formatting
     editorContainer.querySelectorAll('.highlight-mark').forEach(mark => {
       const parent = mark.parentNode;
@@ -70,7 +74,9 @@ export default function QuillEditor({
       }
     });
     
-    if (!highlightedKeyword && highlights.length === 0) return;
+    if (!highlightedKeyword && highlights.length === 0) {
+      return;
+    }
     
     const colorMap: Record<string, string> = {
       green: '#22c55e',
@@ -257,6 +263,21 @@ export default function QuillEditor({
     'direction', 'align',
     'link', 'code-block'
   ];
+
+  const handleChange = (newValue: string) => {
+    // Get current text content from editor
+    if (quillRef.current) {
+      const editor = quillRef.current.getEditor();
+      const currentTextContent = editor.root.textContent || '';
+      
+      // Only trigger onChange if the actual text content changed
+      // This prevents onChange from firing when only highlight spans are added/removed
+      if (currentTextContent !== previousTextContent.current) {
+        previousTextContent.current = currentTextContent;
+        onChange(newValue);
+      }
+    }
+  };
 
   return (
     <div className="quill-editor-wrapper" dir="rtl">
@@ -449,7 +470,7 @@ export default function QuillEditor({
           ref={quillRef}
           theme="snow"
           value={value}
-          onChange={onChange}
+          onChange={handleChange}
           modules={modules}
           formats={formats}
           placeholder="ابدأ الكتابة أو الصق المحتوى هنا..."
