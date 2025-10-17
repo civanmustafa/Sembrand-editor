@@ -41,6 +41,13 @@ Preferred communication style: Simple, everyday language.
 24. **Highlight Colors:** Customized company name highlight color from red to blue (#3b82f6) for better visual distinction from violations
 25. **Criteria Labels:** Simplified criteria card labels from "المطلوب/الحالي" to "مطلوب/حالي" with increased font size (text-xs instead of text-[10px]) for better readability
 
+### UX Enhancements Batch 4 (October 17, 2025)
+26. **Repeated Phrases Scroll Fix:** Added `e.preventDefault()` in category highlight toggle to prevent unwanted scrolling when clicking highlight icon
+27. **Batch Category Highlighting:** Enhanced category highlight to toggle all phrases in category simultaneously instead of one-by-one
+28. **Duplicate Phrase Detection Fix:** Unified text normalization pipeline using shared `cleanText` function to eliminate punctuation-induced duplicates in repeated phrase detection
+29. **Selection Stats Repositioning:** Moved word/character selection counter from bottom toolbar row to top toolbar row on the right side for better visibility
+30. **Compact Criteria Metrics:** Replaced verbose labels "مطلوب" and "حالي" with concise symbols (✓ for required, → for current, ← for separator) in Structure & Content tab criteria cards
+
 ## System Architecture
 
 ### Frontend Architecture
