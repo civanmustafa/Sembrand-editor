@@ -118,6 +118,7 @@ export default function TiptapEditor({
     extensions: [
       StarterKit.configure({
         codeBlock: false,
+        link: false, // Disable default link to use our custom config
         heading: {
           levels: [1, 2, 3, 4]
         }
