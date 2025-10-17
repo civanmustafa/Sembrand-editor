@@ -266,7 +266,7 @@ export default function TiptapEditor({
     content: value,
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-xl focus:outline-none min-h-[500px] max-h-[500px] overflow-y-auto p-4',
+        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-xl focus:outline-none min-h-[500px] max-h-[500px] overflow-y-auto',
         dir: 'rtl'
       }
     },
@@ -306,11 +306,29 @@ export default function TiptapEditor({
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
       isApplyingHighlights.current = true;
+      
+      // Save cursor position before updating content
+      const { from, to } = editor.state.selection;
+      const savedCursorPos = { from, to };
+      
       editor.commands.setContent(value);
       previousValue.current = value;
+      
+      // Restore cursor position after content update
       setTimeout(() => {
+        try {
+          // Make sure the position is still valid
+          const docSize = editor.state.doc.content.size;
+          const validFrom = Math.min(savedCursorPos.from, docSize);
+          const validTo = Math.min(savedCursorPos.to, docSize);
+          
+          editor.commands.setTextSelection({ from: validFrom, to: validTo });
+        } catch (e) {
+          // If restoration fails, just focus the editor
+          editor.commands.focus();
+        }
         isApplyingHighlights.current = false;
-      }, 100);
+      }, 10);
     }
   }, [value, editor]);
 
@@ -807,7 +825,9 @@ export default function TiptapEditor({
           </div>
         </div>
 
-        <EditorContent editor={editor} />
+        <div className="w-full" style={{ padding: 0, margin: 0 }}>
+          <EditorContent editor={editor} className="w-full" style={{ padding: 0, margin: 0 }} />
+        </div>
       </div>
     </div>
   );

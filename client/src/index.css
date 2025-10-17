@@ -373,9 +373,14 @@
 }
 
 /* Global ProseMirror CSS - Remove all padding */
+.ProseMirror-focused {
+  outline: none !important;
+}
+
 .ProseMirror {
   padding: 0 !important;
   margin: 0 !important;
+  width: 100% !important;
 }
 
 .ProseMirror p,
@@ -387,4 +392,19 @@
 .ProseMirror h6 {
   margin-left: 0 !important;
   margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.tiptap-editor-wrapper .ProseMirror > * {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* EditorContent wrapper */
+.ProseMirror-wrapper,
+[class*="EditorContent"] {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
 }

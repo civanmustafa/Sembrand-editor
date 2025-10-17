@@ -97,7 +97,7 @@ export default function CriteriaCard({
         {/* Progress Bar */}
         {status === 'violation' && violationCount > 0 && (
           <div className="space-y-0.5">
-            <Progress value={progressValue} className="h-1" />
+            <Progress value={progressValue} className="h-1.5 animate-pulse" />
             <p className="text-[10px] text-muted-foreground text-right">
               {violationCount} مخالفة
             </p>
@@ -105,12 +105,13 @@ export default function CriteriaCard({
         )}
 
         {/* Metrics */}
-        <div className="space-y-0.5">
-          <div className="flex items-center justify-start gap-2 text-[10px]">
+        <div className="flex items-center justify-start gap-3 text-[10px] flex-wrap">
+          <div className="flex items-center gap-1">
             <span className="text-muted-foreground">المطلوب:</span>
-            <span className="font-mono font-medium break-words">{required}</span>
+            <span className="font-mono font-medium">{required}</span>
           </div>
-          <div className="flex items-center justify-start gap-2 text-[10px]">
+          <span className="text-muted-foreground">•</span>
+          <div className="flex items-center gap-1">
             <span className="text-muted-foreground">الحالي:</span>
             <Badge className={`font-mono ${config.badgeClass} text-[10px]`}>
               {current}
