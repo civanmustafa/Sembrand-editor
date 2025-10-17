@@ -10,7 +10,7 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (October 2025)
 
-### UX Enhancements Batch
+### UX Enhancements Batch (October 17, 2025)
 1. **Editor Scrollbar:** Repositioned to far left edge for RTL layout consistency
 2. **Cursor Stability:** Preserved cursor position during highlight activation and text formatting operations
 3. **Scroll Prevention:** Added preventDefault on highlight buttons to prevent unwanted card scrolling
@@ -20,6 +20,10 @@ Preferred communication style: Simple, everyday language.
 7. **Editor Utilities:** Added three toolbar buttons - clear highlights (manual), remove empty lines, save/restore content
 8. **Visual Enhancement:** Gradient backgrounds (from-primary/10 via-accent/5 to-background) on dashboard cards
 9. **Phrase Analysis:** Punctuation marks excluded from repeated phrase detection for accurate matching
+10. **Editor Alignment Fix:** Removed all padding from ProseMirror editor - Arabic text now starts from absolute right edge
+11. **Cursor Preservation:** Implemented cursor position save/restore during highlight updates to prevent jumping to end
+12. **Metrics Layout:** "المطلوب" and "الحالي" now display in single line with bullet separator (•) in criteria cards
+13. **Progress Bar Consistency:** Added animate-pulse effect to structure/content progress bars to match repeated phrases tab
 
 ## System Architecture
 
