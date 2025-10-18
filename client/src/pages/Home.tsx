@@ -424,8 +424,8 @@ export default function Home() {
           <ThemeToggle />
         </div>
       <main className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-40px)]">
-          <div className="lg:col-span-3 overflow-auto">
+        <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-40px)]">
+          <div className="w-full lg:w-80 lg:flex-shrink-0 overflow-auto">
             <div className="space-y-4">
               <KeywordInput
                 primaryKeyword={primaryKeyword}
@@ -461,7 +461,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="lg:col-span-6 flex flex-col min-h-0">
+          <div className="flex-1 flex flex-col min-h-0 min-w-0">
             <ContentEditor
               content={content}
               onChange={setContent}
@@ -473,7 +473,7 @@ export default function Home() {
             />
           </div>
 
-          <div className="lg:col-span-3 overflow-auto">
+          <div className="w-full lg:w-80 lg:flex-shrink-0 overflow-auto">
             <Tabs defaultValue="structure" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="structure" data-testid="tab-structure" className="gap-1.5" title="الهيكل والمحتوى">
