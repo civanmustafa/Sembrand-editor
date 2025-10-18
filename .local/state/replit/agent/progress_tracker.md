@@ -905,3 +905,53 @@ The migration is complete! The Arabic SEO content analyzer is fully functional a
 
 **Ready to Use!**
 The migration import is complete. Your Arabic SEO content analyzer is fully functional and ready for production use or further development.
+
+---
+
+## تحديثات العبارات الفرعية - 18 أكتوبر 2025
+
+[x] 167. تحسين عرض الشروط في بطاقات العبارات الفرعية - إضافة عنوان "الشروط المطلوبة"
+[x] 168. تحديث نصوص الشروط لتعكس الحالة الفعلية (موجودة في X عناوين H2 أو غير موجودة)
+[x] 169. تنظيم الإحصائيات في قسمين: النسب والأعداد مع فاصل واضح
+[x] 170. إضافة نفس التحسينات للكلمة المفتاحية الأساسية لضمان الاتساق
+[x] 171. إصلاح أخطاء TypeScript - استخدام optional chaining لتجنب undefined
+[x] 172. التأكد من أن toggle التمييز يعمل بالفعل (موجود في handleKeywordClick)
+[x] 173. التأكد من إلغاء حساسية الأحرف (findAllOccurrences يستخدم normalizeArabicText)
+[x] 174. المراجعة المعمارية النهائية - تمت الموافقة على جميع التعديلات
+
+**التفاصيل الفنية:**
+
+**التحسينات على بطاقات العبارات الفرعية:**
+1. **الشروط المطلوبة:**
+   - عنوان واضح "الشروط المطلوبة:"
+   - نصوص ديناميكية تعكس الحالة الفعلية:
+     * إذا موجودة: "موجودة في X عنوان/عناوين H2"
+     * إذا غير موجودة: "غير موجودة في أي عنوان H2 (مطلوب عنوان واحد على الأقل)"
+   - نفس المنطق للفقرات المرتبطة
+
+2. **الإحصائيات:**
+   - النسبة المطلوبة والحالية في قسم واحد
+   - فاصل border
+   - العدد المطلوب والحالي في قسم واحد
+   - كل البيانات المرتبطة مجمعة معاً
+
+3. **الأمان والجودة:**
+   - استخدام optional chaining (?.length) لتجنب أخطاء undefined
+   - لا توجد أخطاء LSP
+   - الكود نظيف ومقروء
+
+**الملفات المعدلة:**
+- client/src/components/KeywordAnalysis.tsx (تحسين عرض الشروط والإحصائيات)
+
+**موافقة المعماري:**
+> "Pass: The updated sub-keyword cards accurately reflect analysis state with text and icons remaining in sync. Conditional labels now pivot correctly between success and failure messaging for H2 headings and related paragraphs, matching the boolean checks driving the icons."
+
+**النتيجة:**
+- ✅ بطاقات العبارات الفرعية الآن أكثر وضوحاً ودقة
+- ✅ النصوص تعكس الحالة الفعلية للتحليل
+- ✅ لا يوجد تناقض بين النصوص والأيقونات
+- ✅ Toggle التمييز يعمل بشكل صحيح (نقرة للتمييز، نقرة للإلغاء)
+- ✅ إلغاء حساسية الأحرف يعمل بشكل صحيح (أ/إ/آ، ه/ة، ي/ى)
+- ✅ التطبيق مستقر وجاهز للاستخدام
+
+**Status: ✅ SUB-KEYWORD CARDS IMPROVEMENTS COMPLETED - ARCHITECT APPROVED - ALL FEATURES WORKING PERFECTLY**
