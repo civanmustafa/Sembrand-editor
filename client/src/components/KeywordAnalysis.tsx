@@ -211,7 +211,8 @@ export default function KeywordAnalysis({
         </CardHeader>
         <CardContent className="space-y-3">
           {checkPrimary && (
-            <div className="space-y-2">
+            <div className="space-y-2 pb-3 border-b">
+              <div className="text-xs font-medium text-muted-foreground mb-2">الشروط المطلوبة:</div>
               <CriteriaCheck 
                 met={analysis.inFirstParagraph || false} 
                 label="موجودة في أول فقرة" 
@@ -232,45 +233,56 @@ export default function KeywordAnalysis({
           )}
 
           {checkSub && (
-            <div className="space-y-2">
+            <div className="space-y-2 pb-3 border-b">
+              <div className="text-xs font-medium text-muted-foreground mb-2">الشروط المطلوبة:</div>
               <CriteriaCheck 
                 met={(analysis.inH2Headings?.length || 0) > 0} 
-                label={`موجودة في ${analysis.inH2Headings?.length || 0} عنوان H2`}
+                label={
+                  (analysis.inH2Headings?.length || 0) > 0 
+                    ? `موجودة في ${analysis.inH2Headings?.length || 0} ${(analysis.inH2Headings?.length || 0) === 1 ? 'عنوان' : 'عناوين'} H2` 
+                    : "غير موجودة في أي عنوان H2 (مطلوب عنوان واحد على الأقل)"
+                }
               />
               <CriteriaCheck 
                 met={analysis.inRelatedParagraphs || false} 
-                label="موجودة في فقرة نفس العنوان" 
+                label={
+                  analysis.inRelatedParagraphs 
+                    ? "موجودة في الفقرات المرتبطة بنفس العناوين" 
+                    : "غير موجودة في الفقرات المرتبطة بالعناوين (مطلوب)"
+                } 
               />
             </div>
           )}
 
-          <div className="pt-2 border-t space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">النسبة المطلوبة:</span>
-              <span className="font-medium">
-                {analysis.requiredPercentage.min.toFixed(1)}% - {analysis.requiredPercentage.max.toFixed(1)}%
-              </span>
+          <div className="pt-3 space-y-3">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">النسبة المطلوبة:</span>
+                <span className="font-medium">
+                  {analysis.requiredPercentage.min.toFixed(1)}% - {analysis.requiredPercentage.max.toFixed(1)}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">النسبة الحالية:</span>
+                <Badge variant={isInRange ? 'default' : 'destructive'}>
+                  {analysis.percentage.toFixed(2)}%
+                </Badge>
+              </div>
             </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">النسبة الحالية:</span>
-              <Badge variant={isInRange ? 'default' : 'destructive'}>
-                {analysis.percentage.toFixed(2)}%
-              </Badge>
-            </div>
-          </div>
-
-          <div className="pt-2 border-t space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">العدد المطلوب:</span>
-              <span className="font-medium">
-                {analysis.requiredCount.min} - {analysis.requiredCount.max}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">العدد الحالي:</span>
-              <Badge variant={isInRange ? 'default' : 'destructive'}>
-                {analysis.count}
-              </Badge>
+            
+            <div className="space-y-2 pt-2 border-t">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">العدد المطلوب:</span>
+                <span className="font-medium">
+                  {analysis.requiredCount.min} - {analysis.requiredCount.max}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">العدد الحالي:</span>
+                <Badge variant={isInRange ? 'default' : 'destructive'}>
+                  {analysis.count}
+                </Badge>
+              </div>
             </div>
           </div>
         </CardContent>
