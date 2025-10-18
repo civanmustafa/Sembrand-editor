@@ -21,7 +21,9 @@ export default function CategoryHeader({ title, emoji, violationCount, totalCoun
     }`}>
       <div className="space-y-3">
         <div className="flex items-center justify-end gap-2">
-          <h3 className="text-xl font-semibold text-foreground">
+          <h3 className={`text-xl font-semibold transition-colors duration-500 ${
+            isAllAchieved ? 'text-success' : 'text-foreground'
+          }`}>
             {title}
           </h3>
           {emoji && <span className="text-2xl">{emoji}</span>}
@@ -35,14 +37,26 @@ export default function CategoryHeader({ title, emoji, violationCount, totalCoun
           />
           <div className="flex items-center justify-end gap-4 text-sm">
             <div className="flex items-center gap-1.5" data-testid="violations-count">
-              <XCircle className="w-4 h-4 text-destructive" />
-              <span className="font-medium text-foreground">{violationCount}</span>
-              <span className="text-muted-foreground">مخالف</span>
+              <XCircle className={`w-4 h-4 transition-colors duration-500 ${
+                isAllAchieved ? 'text-success' : 'text-destructive'
+              }`} />
+              <span className={`font-medium transition-colors duration-500 ${
+                isAllAchieved ? 'text-success' : 'text-foreground'
+              }`}>{violationCount}</span>
+              <span className={`transition-colors duration-500 ${
+                isAllAchieved ? 'text-success' : 'text-muted-foreground'
+              }`}>مخالف</span>
             </div>
             <div className="flex items-center gap-1.5" data-testid="achieved-count">
-              <CheckCircle2 className="w-4 h-4 text-green-600" />
-              <span className="font-medium text-foreground">{achievedCount}</span>
-              <span className="text-muted-foreground">متوافق</span>
+              <CheckCircle2 className={`w-4 h-4 transition-colors duration-500 ${
+                isAllAchieved ? 'text-success' : 'text-green-600'
+              }`} />
+              <span className={`font-medium transition-colors duration-500 ${
+                isAllAchieved ? 'text-success' : 'text-foreground'
+              }`}>{achievedCount}</span>
+              <span className={`transition-colors duration-500 ${
+                isAllAchieved ? 'text-success' : 'text-muted-foreground'
+              }`}>متوافق</span>
             </div>
           </div>
         </div>
