@@ -456,6 +456,9 @@ export default function TiptapEditor({
           direction: ltr;
           padding: 0;
           margin: 0;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
         }
         
         .tiptap-editor-wrapper .ProseMirror {
@@ -463,10 +466,24 @@ export default function TiptapEditor({
           font-size: 16px;
           direction: rtl;
           text-align: right;
-          overflow-y: auto;
-          max-height: calc(100vh - 250px);
-          padding: 1.5rem !important;
+          overflow-y: auto !important;
+          flex: 1 !important;
+          min-height: 0 !important;
+          padding: 1rem !important;
           margin: 0 !important;
+        }
+        
+        .tiptap-editor-wrapper .ProseMirror-focused {
+          outline: none !important;
+        }
+        
+        .tiptap-editor-wrapper .ProseMirror > *:first-child {
+          margin-top: 0 !important;
+          padding-top: 0 !important;
+        }
+        
+        .tiptap-editor-wrapper .ProseMirror > p:first-child {
+          margin-top: 0 !important;
         }
         
         .tiptap-editor-wrapper .ProseMirror p {
@@ -652,7 +669,7 @@ export default function TiptapEditor({
         }
       `}</style>
 
-      <div className="relative">
+      <div className="relative" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         <div className="tiptap-toolbar">
           {/* السطر العلوي - الأزرار الإضافية */}
           <div className="tiptap-toolbar-row">
@@ -911,8 +928,8 @@ export default function TiptapEditor({
           </div>
         </div>
 
-        <div className="w-full" style={{ padding: 0, margin: 0 }}>
-          <EditorContent editor={editor} className="w-full" style={{ padding: 0, margin: 0 }} />
+        <div className="w-full" style={{ padding: 0, margin: 0, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <EditorContent editor={editor} className="w-full" style={{ padding: 0, margin: 0, height: '100%', flex: 1 }} />
         </div>
       </div>
     </div>
