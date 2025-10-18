@@ -425,7 +425,7 @@ export default function Home() {
         </div>
       <main className="w-full px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-40px)]">
-          <div className="w-full lg:w-[20%] lg:flex-shrink-0 overflow-auto">
+          <div className="w-full lg:w-[22%] xl:w-[25%] lg:flex-shrink-0 overflow-auto">
             <KeywordInput
               primaryKeyword={primaryKeyword}
               subKeyword1={subKeyword1}
