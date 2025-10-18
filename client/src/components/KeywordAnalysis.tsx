@@ -170,17 +170,20 @@ export default function KeywordAnalysis({
 
     const isInRange = analysis.count >= analysis.requiredCount.min && 
                      analysis.count <= analysis.requiredCount.max;
+    const isHighlighted = highlightedKeyword === keyword;
 
     return (
-      <Card className={highlightedKeyword === keyword ? 'ring-2 ring-primary' : ''}>
+      <Card className={isHighlighted ? 'ring-2 ring-primary' : ''}>
         <CardHeader className="pb-3 space-y-0">
           <div className="flex items-center justify-between gap-2">
             <CardTitle className="text-sm font-medium">{title}</CardTitle>
+          </div>
+          <div className="flex items-center justify-between gap-2 mt-2">
             <div className="flex items-center gap-1 shrink-0">
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-7 w-7"
+                className={`h-7 w-7 ${isHighlighted ? 'bg-primary/10 ring-2 ring-primary/30' : ''}`}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -188,7 +191,7 @@ export default function KeywordAnalysis({
                 }}
                 data-testid={`button-highlight-${keyword}`}
               >
-                <Highlighter className="w-3 h-3" />
+                <Highlighter className={`w-3 h-3 ${isHighlighted ? 'text-primary' : ''}`} />
               </Button>
               <Button
                 size="icon"
@@ -204,9 +207,9 @@ export default function KeywordAnalysis({
                 )}
               </Button>
             </div>
-          </div>
-          <div className="text-right text-sm text-primary truncate block w-full">
-            {keyword}
+            <div className="text-right text-sm text-primary truncate block flex-1">
+              {keyword}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">

@@ -121,14 +121,7 @@ export default function Home() {
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
     
-    // If we just added a phrase, scroll to it
-    if (!wasHighlighted) {
-      setScrollToText(phrase);
-      setTimeout(() => {
-        setScrollToText(null);
-      }, 500);
-    }
-    
+    // Don't scroll when highlighting phrases - keep tab stable
     // Reset flag after a short delay to allow highlights to be applied
     setTimeout(() => {
       isApplyingHighlights.current = false;

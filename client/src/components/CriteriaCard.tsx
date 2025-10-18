@@ -75,7 +75,7 @@ export default function CriteriaCard({
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 flex items-center gap-1.5">
             <h3 
-              className={`font-semibold text-sm text-foreground text-right ${onClick && status === 'violation' ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+              className={`font-semibold text-[13px] text-foreground text-right ${onClick && status === 'violation' ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
               onClick={onClick && status === 'violation' ? onClick : undefined}
             >
               {title}
@@ -107,13 +107,12 @@ export default function CriteriaCard({
         {/* Metrics */}
         <div className="flex items-center justify-start gap-2 text-xs flex-wrap">
           <div className="flex items-center gap-1">
-            <span className="text-xs">✓</span>
-            <span className="font-mono text-[11px]">{required}</span>
+            <span className="font-mono text-[12px]">{required}</span>
           </div>
-          <span className="text-muted-foreground text-[10px]">←</span>
+          <span className="text-muted-foreground text-[11px]">←</span>
           <div className="flex items-center gap-1">
-            <span className="text-xs">→</span>
-            <Badge className={`font-mono ${config.badgeClass} text-[11px] px-1.5 py-0`}>
+            <span className="text-[12px]">→</span>
+            <Badge className={`font-mono ${config.badgeClass} text-[12px] px-1.5 py-0`}>
               {current}
             </Badge>
           </div>

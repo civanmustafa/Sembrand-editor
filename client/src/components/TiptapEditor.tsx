@@ -789,6 +789,7 @@ export default function TiptapEditor({
                   .replace(/<p>[\s\u200B\u00A0]*<\/p>/g, '')
                   .replace(/(<\/[^>]+>)\s*\n\s*(<[^>]+>)/g, '$1$2');
                 editor.commands.setContent(cleaned);
+                onChange(cleaned);
                 setTimeout(() => {
                   const newDocSize = editor.state.doc.content.size;
                   const safeFrom = Math.min(from, newDocSize);

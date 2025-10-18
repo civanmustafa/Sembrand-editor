@@ -198,6 +198,10 @@ export default function RepeatedPhrases({
     e.stopPropagation();
     e.preventDefault();
     
+    // Prevent any scroll behavior
+    const scrollElement = document.querySelector('.tiptap-editor-wrapper');
+    const savedScrollTop = scrollElement?.scrollTop || 0;
+    
     const allHighlighted = categoryPhrases.every(p => highlightedPhrases.has(p.phrase));
     
     if (allHighlighted) {
@@ -211,6 +215,13 @@ export default function RepeatedPhrases({
         }
       });
     }
+    
+    // Restore scroll position after a short delay
+    setTimeout(() => {
+      if (scrollElement) {
+        scrollElement.scrollTop = savedScrollTop;
+      }
+    }, 50);
   };
 
   const PhraseGroup = ({
