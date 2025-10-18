@@ -48,6 +48,12 @@ Preferred communication style: Simple, everyday language.
 29. **Selection Stats Repositioning:** Moved word/character selection counter from bottom toolbar row to top toolbar row on the right side for better visibility
 30. **Compact Criteria Metrics:** Replaced verbose labels "مطلوب" and "حالي" with concise symbols (✓ for required, → for current, ← for separator) in Structure & Content tab criteria cards
 
+### Sub-Keyword Analysis Improvements (October 18, 2025)
+31. **Enhanced Sub-Keyword Criteria Display:** Added clearer requirement section with descriptive header "الشروط المطلوبة" and dynamic status messages that reflect actual analysis state
+32. **Conditional Status Messages:** Implemented conditional text for H2 heading presence - shows exact count when found ("موجودة في X عناوين H2") or clear absence message when not found ("غير موجودة في أي عنوان H2 - مطلوب عنوان واحد على الأقل")
+33. **Reorganized Statistics Layout:** Grouped related metrics together - percentage requirements with actual percentage, separated by border, followed by word count requirements with actual count
+34. **Responsive Keywords Panel:** Implemented responsive width for keywords panel - 22% on lg screens (≥1024px) for balanced layout, expanding to 25% on xl screens (≥1280px) for enhanced readability without compromising editor space
+
 ## System Architecture
 
 ### Frontend Architecture
