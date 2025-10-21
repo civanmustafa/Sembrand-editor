@@ -98,7 +98,7 @@ export default function KeywordInput({
               className="text-right"
               dir="rtl"
             />
-            {subKeywords[index] && subAnalyses[index] && (
+            {subKeywords[index] && subAnalyses && subAnalyses[index] && (
               <div className="mt-2">
                 <SubKeywordCard
                   analysis={subAnalyses[index]!}

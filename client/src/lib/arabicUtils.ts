@@ -24,39 +24,67 @@ export function findAllOccurrences(text: string, searchTerm: string): Array<{sta
   const normalizedSearch = normalizeArabicText(searchTerm);
   const occurrences: Array<{start: number, end: number, text: string}> = [];
   
-  // Check if search term is multi-word
-  const searchWords = normalizedSearch.split(/\s+/);
+  // Remove punctuation from search term for matching
+  const cleanSearchTerm = normalizedSearch.replace(/[.,،؛;:!?؟\-_'"""()[\]{}\/\\|]/g, ' ').trim();
+  const searchWords = cleanSearchTerm.split(/\s+/).filter(w => w.length > 0);
   
   if (searchWords.length > 1) {
-    // For multi-word phrases, use substring matching
-    let index = 0;
-    while (index < normalizedText.length) {
-      const foundIndex = normalizedText.indexOf(normalizedSearch, index);
-      if (foundIndex === -1) break;
-      
-      occurrences.push({
-        start: foundIndex,
-        end: foundIndex + searchTerm.length,
-        text: text.substring(foundIndex, foundIndex + searchTerm.length)
-      });
-      
-      index = foundIndex + 1;
-    }
-  } else {
-    // For single word, find exact word matches using word boundaries
-    const words = text.split(/\s+/);
-    let currentIndex = 0;
+    // For multi-word phrases, split text by both spaces and punctuation
+    // Find all occurrences where the words appear in sequence
+    const textSegments = text.split(/[\s.,،؛;:!?؟\-_'"""()[\]{}\/\\|]+/);
+    const normalizedSegments = textSegments.map(seg => normalizeArabicText(seg));
     
-    for (const word of words) {
-      const normalizedWord = normalizeArabicText(word);
-      if (normalizedWord === normalizedSearch) {
+    // Look for sequences of words that match
+    for (let i = 0; i <= normalizedSegments.length - searchWords.length; i++) {
+      let allMatch = true;
+      for (let j = 0; j < searchWords.length; j++) {
+        if (normalizedSegments[i + j] !== searchWords[j]) {
+          allMatch = false;
+          break;
+        }
+      }
+      
+      if (allMatch) {
+        // Find the actual position in original text
+        let startPos = 0;
+        for (let k = 0; k < i; k++) {
+          startPos = text.indexOf(textSegments[k], startPos) + textSegments[k].length;
+        }
+        startPos = text.indexOf(textSegments[i], startPos);
+        
+        // Find end position
+        let endPos = startPos;
+        for (let k = 0; k < searchWords.length; k++) {
+          endPos = text.indexOf(textSegments[i + k], endPos) + textSegments[i + k].length;
+        }
+        
         occurrences.push({
-          start: currentIndex,
-          end: currentIndex + word.length,
-          text: word
+          start: startPos,
+          end: endPos,
+          text: text.substring(startPos, endPos)
         });
       }
-      currentIndex += word.length + 1; // +1 for space
+    }
+  } else {
+    // For single word, split text by spaces and punctuation
+    const textSegments = text.split(/[\s.,،؛;:!?؟\-_'"""()[\]{}\/\\|]+/);
+    const normalizedSegments = textSegments.map(seg => normalizeArabicText(seg));
+    
+    // Find all matches
+    let currentIndex = 0;
+    for (let i = 0; i < normalizedSegments.length; i++) {
+      if (normalizedSegments[i] === cleanSearchTerm) {
+        // Find the actual position in original text
+        const segmentPos = text.indexOf(textSegments[i], currentIndex);
+        occurrences.push({
+          start: segmentPos,
+          end: segmentPos + textSegments[i].length,
+          text: textSegments[i]
+        });
+        currentIndex = segmentPos + textSegments[i].length;
+      } else {
+        currentIndex = text.indexOf(textSegments[i], currentIndex) + textSegments[i].length;
+      }
     }
   }
   
@@ -67,19 +95,32 @@ export function containsArabicWord(text: string, word: string): boolean {
   const normalizedText = normalizeArabicText(text);
   const normalizedWord = normalizeArabicText(word);
   
+  // Remove all punctuation from both text and search term
+  const cleanText = normalizedText.replace(/[.,،؛;:!?؟\-_'"""()[\]{}\/\\|]/g, ' ');
+  const cleanWord = normalizedWord.replace(/[.,،؛;:!?؟\-_'"""()[\]{}\/\\|]/g, ' ').trim();
+  
   // Use word boundary matching to find whole words only
   // Split both text and word into words and check if any word matches
-  const textWords = normalizedText.split(/\s+/);
-  const searchWords = normalizedWord.split(/\s+/);
+  const textWords = cleanText.split(/\s+/).filter(w => w.length > 0);
+  const searchWords = cleanWord.split(/\s+/).filter(w => w.length > 0);
   
-  // For multi-word search terms, check if all words appear in sequence
+  // For multi-word search terms, use sliding window to check exact sequence match
   if (searchWords.length > 1) {
-    const searchPhrase = searchWords.join(' ');
-    return normalizedText.includes(searchPhrase);
+    for (let i = 0; i <= textWords.length - searchWords.length; i++) {
+      let allMatch = true;
+      for (let j = 0; j < searchWords.length; j++) {
+        if (textWords[i + j] !== searchWords[j]) {
+          allMatch = false;
+          break;
+        }
+      }
+      if (allMatch) return true;
+    }
+    return false;
   }
   
   // For single word, check exact word match
-  return textWords.some(w => w === normalizedWord);
+  return textWords.some(w => w === cleanWord);
 }
 
 export function countOccurrences(text: string, searchTerm: string): number {
