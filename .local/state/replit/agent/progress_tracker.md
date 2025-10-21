@@ -1036,3 +1036,64 @@ The migration is 100% complete! All items are marked as done with [x] checkboxes
 
 **Migration Complete!**
 The import from Replit Agent to the Replit environment is now fully complete. All tasks have been successfully migrated, all packages are installed, the workflow is running smoothly, and the application has been verified to be fully functional.
+
+---
+
+## نظام الكلمات المفتاحية المتقدم - 21 أكتوبر 2025
+
+[x] 183. إضافة أنواع البيانات للكلمات المفتاحية في shared/schema.ts
+[x] 184. إنشاء دوال التحليل في client/src/lib/keywordAnalysis.ts
+[x] 185. إنشاء مكون KeywordInput لإدخال الكلمات المفتاحية
+[x] 186. إنشاء PrimaryKeywordCard مع جميع الفحوصات (أول/آخر فقرة/عنوان، نسبة 0.7-0.9%)
+[x] 187. إنشاء SubKeywordCard مع فحوصات H2 والفقرات (نسبة 0.1-0.2%)
+[x] 188. إنشاء CompanyNameCard مع تحليل النسبة (0.1-0.2%)
+[x] 189. إنشاء KeywordAnalysis كمكون رئيسي يجمع جميع البطاقات
+[x] 190. دمج نظام الكلمات المفتاحية في Home.tsx
+[x] 191. إضافة handleKeywordClick مع toggle highlighting
+[x] 192. تحديث التخطيط إلى 3 أعمدة (كلمات مفتاحية، محرر، تحليل)
+[x] 193. إضافة أيقونات النسخ لجميع الكلمات المفتاحية
+[x] 194. تطبيق إلغاء حساسية الأحرف العربية في جميع التحليلات
+[x] 195. اختبار جميع الوظائف والتأكد من عملها بشكل صحيح
+[x] 196. مراجعة المعماري والحصول على الموافقة النهائية
+
+**الميزات المضافة:**
+
+1. **تحليل الكلمة المفتاحية الأساسية:**
+   - فحص الوجود في أول فقرة، أول عنوان، آخر عنوان، آخر فقرة
+   - نسبة التكرار المستهدفة: 0.7-0.9%
+   - عرض النسبة والعدد المطلوب والحالي
+   - تمييز بالون الأخضر عند النقر
+
+2. **تحليل العبارات الفرعية (4 عبارات):**
+   - فحص الوجود في عناوين H2
+   - فحص الوجود في فقرة نفس العنوان H2
+   - عرض قائمة عناوين H2 المحتوية على العبارة
+   - نسبة التكرار المستهدفة: 0.1-0.2%
+   - تمييز بالون البرتقالي عند النقر
+
+3. **تحليل اسم الشركة:**
+   - نسبة التكرار المستهدفة: 0.1-0.2%
+   - تمييز بالون الأزرق عند النقر
+
+4. **مميزات إضافية:**
+   - أيقونة نسخ لكل كلمة مفتاحية
+   - toggle highlighting (نقرة للتمييز، نقرة للإلغاء)
+   - إلغاء حساسية الأحرف العربية (أ/إ/آ، ه/ة، ي/ى)
+   - تخطيط 3 أعمدة محسّن
+
+**الملفات المضافة:**
+- client/src/lib/keywordAnalysis.ts
+- client/src/components/KeywordInput.tsx
+- client/src/components/KeywordAnalysis.tsx
+- client/src/components/PrimaryKeywordCard.tsx
+- client/src/components/SubKeywordCard.tsx
+- client/src/components/CompanyNameCard.tsx
+
+**الملفات المعدلة:**
+- shared/schema.ts (إضافة interfaces)
+- client/src/pages/Home.tsx (دمج النظام الجديد)
+
+**موافقة المعماري:**
+> "Pass – The implemented keyword analysis workflow satisfies the specified functional and UI requirements. Critical findings: analyzePrimaryKeyword, analyzeSubKeyword, and analyzeCompanyName now enforce the mandated location checks while computing frequency bands of 0.7–0.9% (primary) and 0.1–0.2% (sub/company) via shared normalization helpers; KeywordAnalysis wiring delivers copy-enabled cards with highlight toggles that clear/activate the target keyword state for the editor; the keyword column lives alongside the editor and analysis panes, completing the three-column arrangement."
+
+**Status: ✅ KEYWORD ANALYSIS SYSTEM FULLY IMPLEMENTED - ARCHITECT APPROVED - ALL 196 ITEMS COMPLETE**
