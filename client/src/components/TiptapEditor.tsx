@@ -929,7 +929,7 @@ export default function TiptapEditor({
           </div>
         </div>
 
-        <div className="w-full" style={{ padding: 0, margin: 0, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <div className="w-full" dir="rtl" style={{ padding: 0, margin: 0, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <EditorContent editor={editor} className="w-full" style={{ padding: 0, margin: 0, height: '100%', flex: 1 }} />
         </div>
       </div>

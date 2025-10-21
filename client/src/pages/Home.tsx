@@ -80,6 +80,54 @@ export default function Home() {
     }, 300);
   }, [highlightedKeyword]);
 
+  const handleHighlightAllKeywords = useCallback(() => {
+    // Set flag to prevent phrase cleanup effect from running
+    isApplyingHighlights.current = true;
+
+    // Collect all keywords with their types
+    const allHighlights: HighlightConfig[] = [];
+    
+    // Add primary keyword
+    if (primaryKeyword) {
+      allHighlights.push({
+        text: primaryKeyword,
+        color: 'green',
+        type: 'keyword' as const
+      });
+    }
+    
+    // Add sub keywords
+    subKeywords.forEach(keyword => {
+      if (keyword) {
+        allHighlights.push({
+          text: keyword,
+          color: 'orange',
+          type: 'keyword' as const
+        });
+      }
+    });
+    
+    // Add company name
+    if (companyName) {
+      allHighlights.push({
+        text: companyName,
+        color: 'blue',
+        type: 'keyword' as const
+      });
+    }
+
+    setHighlights(allHighlights);
+    setHighlightedKeyword(null); // Clear single keyword highlight
+    setHighlightedPhrases(new Set());
+    setHighlightedViolation(null);
+    setHighlightedCriteria(null);
+
+    // Reset flag after a short delay
+    setTimeout(() => {
+      isApplyingHighlights.current = false;
+    }, 300);
+  }, [primaryKeyword, subKeywords, companyName]);
+
   const getColorForPhrase = useCallback((phrase: string): string => {
     let hash = 0;
     for (let i = 0; i < phrase.length; i++) {
@@ -360,6 +408,7 @@ export default function Home() {
               onSubKeywordChange={handleSubKeywordChange}
               onCompanyNameChange={setCompanyName}
               onKeywordClick={handleKeywordClick}
+              onHighlightAll={handleHighlightAllKeywords}
             />
           </div>
 

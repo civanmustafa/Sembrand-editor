@@ -1,9 +1,6 @@
 import { useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import KeywordInput from './KeywordInput';
-import PrimaryKeywordCard from './PrimaryKeywordCard';
-import SubKeywordCard from './SubKeywordCard';
-import CompanyNameCard from './CompanyNameCard';
 import { analyzePrimaryKeyword, analyzeSubKeyword, analyzeCompanyName } from '@/lib/keywordAnalysis';
 import type { PrimaryKeywordAnalysis, SubKeywordAnalysis, CompanyNameAnalysis } from '@shared/schema';
 
@@ -17,6 +14,7 @@ interface KeywordAnalysisProps {
   onSubKeywordChange: (index: number, value: string) => void;
   onCompanyNameChange: (value: string) => void;
   onKeywordClick: (keyword: string, type: 'primary' | 'sub' | 'company') => void;
+  onHighlightAll: () => void;
 }
 
 export default function KeywordAnalysis({
@@ -28,7 +26,8 @@ export default function KeywordAnalysis({
   onPrimaryKeywordChange,
   onSubKeywordChange,
   onCompanyNameChange,
-  onKeywordClick
+  onKeywordClick,
+  onHighlightAll
 }: KeywordAnalysisProps) {
   
   // Analyze keywords
@@ -52,50 +51,21 @@ export default function KeywordAnalysis({
   return (
     <div className="h-full flex flex-col">
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
-          {/* Input section */}
+        <div className="p-4">
           <KeywordInput
             primaryKeyword={primaryKeyword}
             subKeywords={subKeywords}
             companyName={companyName}
+            highlightedKeyword={highlightedKeyword}
+            primaryAnalysis={primaryAnalysis}
+            subAnalyses={subAnalyses}
+            companyAnalysis={companyAnalysis}
             onPrimaryKeywordChange={onPrimaryKeywordChange}
             onSubKeywordChange={onSubKeywordChange}
             onCompanyNameChange={onCompanyNameChange}
+            onKeywordClick={onKeywordClick}
+            onHighlightAll={onHighlightAll}
           />
-
-          {/* Analysis section */}
-          <div className="space-y-3">
-            {/* Primary keyword */}
-            {primaryAnalysis && (
-              <PrimaryKeywordCard
-                analysis={primaryAnalysis}
-                isHighlighted={highlightedKeyword === primaryKeyword}
-                onToggleHighlight={() => onKeywordClick(primaryKeyword, 'primary')}
-              />
-            )}
-
-            {/* Sub keywords */}
-            {subAnalyses.map((analysis, index) => 
-              analysis && (
-                <SubKeywordCard
-                  key={index}
-                  analysis={analysis}
-                  index={index}
-                  isHighlighted={highlightedKeyword === subKeywords[index]}
-                  onToggleHighlight={() => onKeywordClick(subKeywords[index], 'sub')}
-                />
-              )
-            )}
-
-            {/* Company name */}
-            {companyAnalysis && (
-              <CompanyNameCard
-                analysis={companyAnalysis}
-                isHighlighted={highlightedKeyword === companyName}
-                onToggleHighlight={() => onKeywordClick(companyName, 'company')}
-              />
-            )}
-          </div>
         </div>
       </ScrollArea>
     </div>

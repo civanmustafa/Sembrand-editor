@@ -24,18 +24,40 @@ export function findAllOccurrences(text: string, searchTerm: string): Array<{sta
   const normalizedSearch = normalizeArabicText(searchTerm);
   const occurrences: Array<{start: number, end: number, text: string}> = [];
   
-  let index = 0;
-  while (index < normalizedText.length) {
-    const foundIndex = normalizedText.indexOf(normalizedSearch, index);
-    if (foundIndex === -1) break;
+  // Check if search term is multi-word
+  const searchWords = normalizedSearch.split(/\s+/);
+  
+  if (searchWords.length > 1) {
+    // For multi-word phrases, use substring matching
+    let index = 0;
+    while (index < normalizedText.length) {
+      const foundIndex = normalizedText.indexOf(normalizedSearch, index);
+      if (foundIndex === -1) break;
+      
+      occurrences.push({
+        start: foundIndex,
+        end: foundIndex + searchTerm.length,
+        text: text.substring(foundIndex, foundIndex + searchTerm.length)
+      });
+      
+      index = foundIndex + 1;
+    }
+  } else {
+    // For single word, find exact word matches using word boundaries
+    const words = text.split(/\s+/);
+    let currentIndex = 0;
     
-    occurrences.push({
-      start: foundIndex,
-      end: foundIndex + searchTerm.length,
-      text: text.substring(foundIndex, foundIndex + searchTerm.length)
-    });
-    
-    index = foundIndex + 1;
+    for (const word of words) {
+      const normalizedWord = normalizeArabicText(word);
+      if (normalizedWord === normalizedSearch) {
+        occurrences.push({
+          start: currentIndex,
+          end: currentIndex + word.length,
+          text: word
+        });
+      }
+      currentIndex += word.length + 1; // +1 for space
+    }
   }
   
   return occurrences;
@@ -44,7 +66,20 @@ export function findAllOccurrences(text: string, searchTerm: string): Array<{sta
 export function containsArabicWord(text: string, word: string): boolean {
   const normalizedText = normalizeArabicText(text);
   const normalizedWord = normalizeArabicText(word);
-  return normalizedText.includes(normalizedWord);
+  
+  // Use word boundary matching to find whole words only
+  // Split both text and word into words and check if any word matches
+  const textWords = normalizedText.split(/\s+/);
+  const searchWords = normalizedWord.split(/\s+/);
+  
+  // For multi-word search terms, check if all words appear in sequence
+  if (searchWords.length > 1) {
+    const searchPhrase = searchWords.join(' ');
+    return normalizedText.includes(searchPhrase);
+  }
+  
+  // For single word, check exact word match
+  return textWords.some(w => w === normalizedWord);
 }
 
 export function countOccurrences(text: string, searchTerm: string): number {
