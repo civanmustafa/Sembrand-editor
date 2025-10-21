@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ContentEditor from '@/components/ContentEditor';
-import KeywordInput from '@/components/KeywordInput';
-import KeywordAnalysis from '@/components/KeywordAnalysis';
 import RepeatedPhrases, { PHRASE_COLORS } from '@/components/RepeatedPhrases';
 import StructureAnalysis from '@/components/StructureAnalysis';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -13,20 +11,12 @@ import { FileText, Repeat } from 'lucide-react';
 
 export default function Home() {
   const [content, setContent] = useState('');
-  const [primaryKeyword, setPrimaryKeyword] = useState('');
-  const [subKeyword1, setSubKeyword1] = useState('');
-  const [subKeyword2, setSubKeyword2] = useState('');
-  const [subKeyword3, setSubKeyword3] = useState('');
-  const [subKeyword4, setSubKeyword4] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [highlightedKeyword, setHighlightedKeyword] = useState<string | null>(null);
   const [highlightedPhrases, setHighlightedPhrases] = useState<Set<string>>(new Set());
   const [highlightedViolation, setHighlightedViolation] = useState<string | null>(null);
   const [highlightedCriteria, setHighlightedCriteria] = useState<string | null>(null);
   const [highlights, setHighlights] = useState<HighlightConfig[]>([]);
   const [editor, setEditor] = useState<any>(null);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [isKeywordsHighlighted, setIsKeywordsHighlighted] = useState(false);
   const [scrollToText, setScrollToText] = useState<string | null>(null);
   
   // Ref to prevent phrase cleanup effect from running when we just applied highlights
@@ -34,50 +24,11 @@ export default function Home() {
 
   const handleClearHighlights = useCallback(() => {
     setHighlights([]);
-    setHighlightedKeyword(null);
     setHighlightedPhrases(new Set());
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
     setScrollToText(null);
-    setIsKeywordsHighlighted(false);
   }, []);
-
-  const handleKeywordClick = (keyword: string, moveCursorOnly: boolean = false) => {
-    // Set flag to prevent phrase cleanup effect from running
-    isApplyingHighlights.current = true;
-    
-    // Clear other highlight types but keep keywords highlighted state
-    setHighlightedPhrases(new Set());
-    setHighlightedViolation(null);
-    setHighlightedCriteria(null);
-    
-    // Toggle individual keyword highlight
-    if (highlightedKeyword === keyword) {
-      setHighlightedKeyword(null);
-      setHighlights([]);
-      setScrollToText(null);
-    } else {
-      setHighlightedKeyword(keyword);
-      setHighlights([{
-        text: keyword,
-        color: 'blue',
-        type: 'keyword' as const
-      }]);
-      
-      // Scroll to the first keyword occurrence
-      setScrollToText(keyword);
-      
-      // Reset scroll after a short delay
-      setTimeout(() => {
-        setScrollToText(null);
-      }, 500);
-      
-      // Reset flag after a short delay
-      setTimeout(() => {
-        isApplyingHighlights.current = false;
-      }, 300);
-    }
-  };
 
   const getColorForPhrase = useCallback((phrase: string): string => {
     let hash = 0;
@@ -117,7 +68,6 @@ export default function Home() {
     }));
     
     setHighlights(phraseHighlights);
-    setHighlightedKeyword(null);
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
     
@@ -153,7 +103,6 @@ export default function Home() {
       setHighlights(violationHighlights);
       setHighlightedViolation(violations[0]); // Keep first for backwards compatibility
       setHighlightedCriteria(criteriaTitle);
-      setHighlightedKeyword(null);
       setHighlightedPhrases(new Set());
       
       // Scroll to the first violation (move cursor without clicking or removing highlights)
@@ -172,65 +121,11 @@ export default function Home() {
       setHighlights([]);
       setHighlightedViolation(null);
       setHighlightedCriteria(null);
-      setHighlightedKeyword(null);
       setHighlightedPhrases(new Set());
       setScrollToText(null);
     }
   }, [content, editor, highlightedCriteria]);
 
-  const handleHighlightAllKeywords = useCallback(() => {
-    // Set flag to prevent phrase cleanup effect from running
-    isApplyingHighlights.current = true;
-    
-    const newHighlights: HighlightConfig[] = [];
-    
-    if (primaryKeyword) {
-      newHighlights.push({
-        text: primaryKeyword,
-        color: 'green',
-        type: 'primary'
-      });
-    }
-    
-    [subKeyword1, subKeyword2, subKeyword3, subKeyword4].forEach(keyword => {
-      if (keyword) {
-        newHighlights.push({
-          text: keyword,
-          color: 'orange',
-          type: 'secondary'
-        });
-      }
-    });
-    
-    if (companyName) {
-      newHighlights.push({
-        text: companyName,
-        color: 'blue',
-        type: 'company'
-      });
-    }
-    
-    setHighlights(newHighlights);
-    setIsKeywordsHighlighted(true);
-    setHighlightedKeyword(null);
-    setHighlightedPhrases(new Set());
-    setHighlightedViolation(null);
-    setHighlightedCriteria(null);
-    
-    // Reset flag after a short delay
-    setTimeout(() => {
-      isApplyingHighlights.current = false;
-    }, 300);
-  }, [primaryKeyword, subKeyword1, subKeyword2, subKeyword3, subKeyword4, companyName]);
-
-  const handleClearAllHighlights = useCallback(() => {
-    setHighlights([]);
-    setIsKeywordsHighlighted(false);
-    setHighlightedKeyword(null);
-    setHighlightedPhrases(new Set());
-    setHighlightedViolation(null);
-    setHighlightedCriteria(null);
-  }, []);
 
   const handleHighlightAllPhrases = useCallback(() => {
     if (!content.trim()) return;
@@ -271,19 +166,10 @@ export default function Home() {
     }));
 
     setHighlights(phraseHighlights);
-    setHighlightedKeyword(null);
     setHighlightedPhrases(new Set());
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
   }, [content, getColorForPhrase]);
-
-  const handleToggleKeywordsHighlight = useCallback(() => {
-    if (isKeywordsHighlighted) {
-      handleClearAllHighlights();
-    } else {
-      handleHighlightAllKeywords();
-    }
-  }, [isKeywordsHighlighted, handleHighlightAllKeywords, handleClearAllHighlights]);
 
   const handleReplace = useCallback((searchText: string, replaceText: string, replaceAll: boolean) => {
     const normalizedSearch = normalizeArabicText(searchText);
@@ -390,18 +276,12 @@ export default function Home() {
       if (e.ctrlKey && e.key === 'f') {
         e.preventDefault();
         setSearchOpen(true);
-      } else if (e.altKey && e.key === 'j') {
-        e.preventDefault();
-        handleHighlightAllKeywords();
-      } else if (e.altKey && e.key === 'l') {
-        e.preventDefault();
-        handleClearAllHighlights();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleHighlightAllKeywords, handleClearAllHighlights]);
+  }, []);
 
   return (
     <>
@@ -418,35 +298,11 @@ export default function Home() {
         </div>
       <main className="w-full px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-40px)]">
-          <div className="w-full lg:w-[22%] xl:w-[25%] lg:flex-shrink-0 overflow-auto">
-            <KeywordInput
-              primaryKeyword={primaryKeyword}
-              subKeyword1={subKeyword1}
-              subKeyword2={subKeyword2}
-              subKeyword3={subKeyword3}
-              subKeyword4={subKeyword4}
-              companyName={companyName}
-              content={content}
-              onPrimaryChange={setPrimaryKeyword}
-              onSubKeyword1Change={setSubKeyword1}
-              onSubKeyword2Change={setSubKeyword2}
-              onSubKeyword3Change={setSubKeyword3}
-              onSubKeyword4Change={setSubKeyword4}
-              onCompanyNameChange={setCompanyName}
-              onHighlightAll={handleToggleKeywordsHighlight}
-              isHighlighted={isKeywordsHighlighted}
-              onKeywordClick={handleKeywordClick}
-              highlightedKeyword={highlightedKeyword}
-              onHighlightAllKeywords={handleHighlightAllKeywords}
-              onClearAllHighlights={handleClearAllHighlights}
-            />
-          </div>
-
           <div className="flex-1 flex flex-col min-h-0 min-w-0">
             <ContentEditor
               content={content}
               onChange={setContent}
-              highlightedKeyword={highlightedKeyword || highlightedViolation}
+              highlightedKeyword={highlightedViolation}
               highlights={highlights}
               onEditorReady={setEditor}
               scrollToText={scrollToText}
