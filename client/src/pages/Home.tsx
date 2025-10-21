@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import ContentEditor from '@/components/ContentEditor';
 import RepeatedPhrases, { PHRASE_COLORS } from '@/components/RepeatedPhrases';
 import StructureAnalysis from '@/components/StructureAnalysis';
+import KeywordAnalysis from '@/components/KeywordAnalysis';
 import ThemeToggle from '@/components/ThemeToggle';
 import SearchReplace from '@/components/SearchReplace';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,6 +20,12 @@ export default function Home() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrollToText, setScrollToText] = useState<string | null>(null);
   
+  // Keyword state
+  const [primaryKeyword, setPrimaryKeyword] = useState('');
+  const [subKeywords, setSubKeywords] = useState<string[]>(['', '', '', '']);
+  const [companyName, setCompanyName] = useState('');
+  const [highlightedKeyword, setHighlightedKeyword] = useState<string | null>(null);
+  
   // Ref to prevent phrase cleanup effect from running when we just applied highlights
   const isApplyingHighlights = useRef(false);
 
@@ -27,8 +34,51 @@ export default function Home() {
     setHighlightedPhrases(new Set());
     setHighlightedViolation(null);
     setHighlightedCriteria(null);
+    setHighlightedKeyword(null);
     setScrollToText(null);
   }, []);
+
+  const handleSubKeywordChange = useCallback((index: number, value: string) => {
+    const newSubKeywords = [...subKeywords];
+    newSubKeywords[index] = value;
+    setSubKeywords(newSubKeywords);
+  }, [subKeywords]);
+
+  const handleKeywordClick = useCallback((keyword: string, type: 'primary' | 'sub' | 'company') => {
+    if (!keyword) return;
+
+    // Toggle: if clicking on the same keyword that's already highlighted, clear it
+    if (highlightedKeyword === keyword) {
+      setHighlights([]);
+      setHighlightedKeyword(null);
+      setHighlightedPhrases(new Set());
+      setHighlightedViolation(null);
+      setHighlightedCriteria(null);
+      setScrollToText(null);
+      return;
+    }
+
+    // Set flag to prevent phrase cleanup effect from running
+    isApplyingHighlights.current = true;
+
+    // Create highlight for the keyword
+    const keywordHighlight: HighlightConfig = {
+      text: keyword,
+      color: type === 'primary' ? 'green' : type === 'sub' ? 'orange' : 'blue',
+      type: 'keyword' as const
+    };
+
+    setHighlights([keywordHighlight]);
+    setHighlightedKeyword(keyword);
+    setHighlightedPhrases(new Set());
+    setHighlightedViolation(null);
+    setHighlightedCriteria(null);
+
+    // Reset flag after a short delay
+    setTimeout(() => {
+      isApplyingHighlights.current = false;
+    }, 300);
+  }, [highlightedKeyword]);
 
   const getColorForPhrase = useCallback((phrase: string): string => {
     let hash = 0;
@@ -298,6 +348,22 @@ export default function Home() {
         </div>
       <main className="w-full px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-40px)]">
+          {/* Keyword Analysis - Right Column */}
+          <div className="w-full lg:w-[25%] lg:flex-shrink-0 overflow-hidden">
+            <KeywordAnalysis
+              content={content}
+              primaryKeyword={primaryKeyword}
+              subKeywords={subKeywords}
+              companyName={companyName}
+              highlightedKeyword={highlightedKeyword}
+              onPrimaryKeywordChange={setPrimaryKeyword}
+              onSubKeywordChange={handleSubKeywordChange}
+              onCompanyNameChange={setCompanyName}
+              onKeywordClick={handleKeywordClick}
+            />
+          </div>
+
+          {/* Content Editor - Center */}
           <div className="flex-1 flex flex-col min-h-0 min-w-0">
             <ContentEditor
               content={content}
@@ -310,7 +376,8 @@ export default function Home() {
             />
           </div>
 
-          <div className="w-full lg:w-[30%] lg:flex-shrink-0 overflow-auto">
+          {/* Structure & Phrases - Left Column */}
+          <div className="w-full lg:w-[25%] lg:flex-shrink-0 overflow-auto">
             <Tabs defaultValue="structure" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="structure" data-testid="tab-structure" className="gap-1.5" title="الهيكل والمحتوى">
