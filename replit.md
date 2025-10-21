@@ -61,6 +61,12 @@ Preferred communication style: Simple, everyday language.
 38. **Function Cleanup:** Removed all keyword-related functions (handleKeywordClick, handleHighlightAllKeywords, handleClearAllHighlights, handleToggleKeywordsHighlight)
 39. **Core Features Preserved:** Structure analysis and repeated phrases detection remain fully functional with their highlighting capabilities intact
 
+### Keyword Detection Critical Fixes (October 21, 2025)
+40. **Punctuation Handling:** Updated `containsArabicWord` and `findAllOccurrences` functions in arabicUtils.ts to strip all punctuation marks before matching, ensuring keywords are detected correctly even when adjacent to punctuation (e.g., "الكلمة،" now matches "الكلمة")
+41. **Sliding Window Matching:** Implemented sliding-window word-by-word comparison in `containsArabicWord` for multi-word phrases to prevent false positives - now requires exact sequence match instead of substring inclusion
+42. **Consistent Detection:** Synchronized both functions to use identical normalization and tokenization logic, ensuring location checks (first/last paragraph, headings) and highlighting counts remain aligned
+43. **Word Boundary Matching:** Both functions now split text by spaces and punctuation, filtering empty tokens, to enforce whole-word matches and eliminate partial-word false positives
+
 ## System Architecture
 
 ### Frontend Architecture
