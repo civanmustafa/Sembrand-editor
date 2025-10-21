@@ -54,6 +54,13 @@ Preferred communication style: Simple, everyday language.
 33. **Reorganized Statistics Layout:** Grouped related metrics together - percentage requirements with actual percentage, separated by border, followed by word count requirements with actual count
 34. **Responsive Keywords Panel:** Implemented responsive width for keywords panel - 22% on lg screens (≥1024px) for balanced layout, expanding to 25% on xl screens (≥1280px) for enhanced readability without compromising editor space
 
+### Keyword Analysis Feature Removal (October 21, 2025)
+35. **Complete Removal of Keyword Analysis:** Removed all keyword analysis functionality from the application, including KeywordInput and KeywordAnalysis components
+36. **Simplified Layout:** Updated main layout to remove left sidebar that contained keyword inputs - editor now spans full width with analysis tabs on the right
+37. **State Cleanup:** Removed all keyword-related state variables (primaryKeyword, subKeywords, companyName, highlightedKeyword, isKeywordsHighlighted)
+38. **Function Cleanup:** Removed all keyword-related functions (handleKeywordClick, handleHighlightAllKeywords, handleClearAllHighlights, handleToggleKeywordsHighlight)
+39. **Core Features Preserved:** Structure analysis and repeated phrases detection remain fully functional with their highlighting capabilities intact
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -64,7 +71,7 @@ Preferred communication style: Simple, everyday language.
 
 **Text Editor:** Tiptap editor (replaced React Quill) with custom RTL extension for Arabic support, custom highlight decoration plugin using ProseMirror Decorations, and comprehensive formatting capabilities including headings, lists, text alignment, and rich text styles. It supports real-time keyword highlighting with block-level text processing, phrase detection across formatted text nodes, and normalized Arabic character matching including punctuation support. The editor features scrollbar positioned at far left for RTL layout, cursor position preservation during formatting and highlighting operations, auto-scroll to first match functionality, and utility buttons for content management (clear highlights, remove empty lines, save/restore content).
 
-**Analysis Components:** A three-tab analysis interface (Structure & Content, Keywords, Repeated Phrases) providing real-time content validation against SEO criteria, color-coded status indicators, and interactive highlighting with click-to-locate functionality. Features include smart cursor navigation, comprehensive violation highlighting, category-based progress indicators with gradient animations, scroll-prevention on highlight buttons, and streamlined CategoryHeader showing only "متوافق/مخالف" counts without redundant criteria icon. Gradient backgrounds enhance visual hierarchy in dashboard cards.
+**Analysis Components:** A two-tab analysis interface (Structure & Content, Repeated Phrases) providing real-time content validation against SEO criteria, color-coded status indicators, and interactive highlighting with click-to-locate functionality. Features include smart cursor navigation, comprehensive violation highlighting, category-based progress indicators with gradient animations, scroll-prevention on highlight buttons, and streamlined CategoryHeader showing only "متوافق/مخالف" counts without redundant criteria icon. Gradient backgrounds enhance visual hierarchy in dashboard cards.
 
 ### Backend Architecture
 
@@ -79,8 +86,6 @@ Preferred communication style: Simple, everyday language.
 **Typography:** Defined display and heading levels, with a monospace font for statistics.
 
 ### Content Analysis Logic
-
-**Keyword Analysis Rules:** Enforces density percentages for primary and secondary keywords, position checks within content and headings, and prohibition of primary/secondary keywords in the same paragraph.
 
 **Structure Validation:** Criteria for minimum word count, sentence and paragraph length guidelines, and H2/H3 heading hierarchy rules.
 
